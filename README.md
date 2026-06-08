@@ -1,2 +1,2 @@
 # dmspc-system-communication
-ngRadar System Communication Prototyping
+Code for prototyping system communication for the ngRadar project
