@@ -1,0 +1,9 @@
+{
+    "observationID": "obs_001",
+    "antennaID": "North Liberty",
+    "productType": "DDM",
+    "productID": "ddm_002",
+    "creationTime": "2026-06-04T15:05:20.123",
+    "simLocation": "VLBA",
+    "eventTime": "2026-01-18T11:32:05.456"
+}
