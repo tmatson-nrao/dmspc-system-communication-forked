@@ -1,0 +1,14 @@
+Navigate to the Confluent Cloud sign up page: https://www.confluent.io/get-started/
+
+Ensure that the Cloud deployment option is selected, fill in the required information, and create an account.
+
+At the "Welcome to Confluent Cloud!" screen, input your experience level with Kafka, and use the following responses for these questions:
+
+- What brings you to Confluent Cloud?: Evaluating for my company
+- Do you need private networking?: No
+- Do you have data ready to connect to Confluent Cloud?: No
+- Do you have an existing Kafka workload to migrate to Confluent Cloud?: No
+
+When setting up your cluster, select "Basic" plan, Microsoft Azure, and the promo code CONFLUENTDEV1 to bypass entering card information.
+
+Your cluster should now be running.
