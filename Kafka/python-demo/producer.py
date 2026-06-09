@@ -1,16 +1,20 @@
 import json
-import time
 from confluent_kafka import Producer
-from objects_stations import rcvr
+from stations import rcvr
+
+
+
+topic = "2nd_topic" # The topic to which the messages will be sent, rename accordingly
 
 with open('metadata.json', 'r') as file:
   metadata = json.load(file)
 
-# guaranteed ordering by receiver station. Checking to see if valid recevier station is provided in the metadata file.
+# Checking to see if valid recevier station is provided in the metadata file, then extract DNS to use as the key to guarantee ordering by partition.
 receiver = metadata["rcvr_station"]
 if receiver not in [station[0] for station in rcvr.values()]:
     raise ValueError(f"Receiver station {receiver} not valid. Message not sent.")
 rcvr_DSN = rcvr[[key for key, value in rcvr.items() if value[0] == receiver][0]][1] # this is a bit of a convoluted way to get the DSN number for the receiver station, but it works. It looks up the receiver station in the rcvr dictionary and gets the corresponding DSN number.
+
 
 def read_config():
   # reads the client configuration from client.properties
@@ -48,9 +52,9 @@ def produce(topic, config, key, value):
 
 def main():
   config = read_config()
-  topic = "2nd_topic"
 
   produce(topic, config, key_bytes, value_bytes)
+
 
 
 main()

@@ -1,5 +1,4 @@
 
-# call a station using syntax rcvr_stations["NL"][0] to get the station name and rcvr_stations["NL"][1] to get the DSN number. You can also use a loop to iterate through the stations and print out their names and DSN numbers.
 rcvr = {
     "GBT": ["Green Bank (100-m, GBT)", "09"],
     "BR": ["Brewster (25-m, VLBA)", "98"],
@@ -14,10 +13,3 @@ rcvr = {
     "SC": ["St. Croix (25-m, VLBA)", "90"],
 }
 
-
-objectID = {
-    "Moon": "obj_001",
-    "Mars": "obj_002",
-
-
-}
