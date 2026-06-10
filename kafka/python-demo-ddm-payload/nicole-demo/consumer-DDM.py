@@ -36,7 +36,7 @@ def consume(topic, config):
       msg = consumer.poll(1.0) # polls for messages for 1 second
       if msg is not None and msg.error() is None:
         #key = msg.key().decode("utf-8")
-        value = msg.value() # loading the message back into a dictionary so we can access the individual fields
+        value = msg.value() # loading the message back into a dictionary so we can access the individual fields.
 
         filename = f"received-DDM-{uuid4()}.png" # creating a unique filename for the received DDM payload using a random UUID. You can change this to whatever naming convention you want.
         with open(filename, 'wb') as file: # writing the received DDM payload to a file in bytes format.
