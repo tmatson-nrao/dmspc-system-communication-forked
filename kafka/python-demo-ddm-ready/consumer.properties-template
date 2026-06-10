@@ -8,7 +8,7 @@ sasl.password=<API_SECRET>#NOTE REPLACE
 # Best practice for higher availability in librdkafka clients prior to 1.7
 session.timeout.ms=45000
 
-client.id=my-producer#NOTE REPLACE
+client.id=my-consumer#NOTE REPLACE
 
 
 ##############################################
