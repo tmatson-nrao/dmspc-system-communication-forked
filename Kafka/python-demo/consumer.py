@@ -2,7 +2,7 @@ import json
 from confluent_kafka import Consumer
 
 topic = "DDM_Ready"   # NOTE The topic which the messages will be received from, rename accordingly
-
+consumer_group = "gbt-group"  # NOTE rename to whatever consumer group name you want to use
 
 def read_config():
   # reads the client (consumer) configuration from consumer.properties
@@ -19,7 +19,7 @@ def read_config():
 
 def consume(topic, config):
   # sets the consumer group ID and offset
-  config["group.id"] = "gbt-group"  # NOTE rename to whatever consumer group name you want to use
+  config["group.id"] = consumer_group
   config["auto.offset.reset"] = "earliest"
 
   # creates a new consumer instance

@@ -12,3 +12,10 @@ At the "Welcome to Confluent Cloud!" screen, input your experience level with Ka
 When setting up your cluster, select "Basic" plan, Microsoft Azure, and the promo code CONFLUENTDEV1 to bypass entering card information.
 
 Your cluster should now be running.
+
+You will need to obtain your API key and API secret to configure your producer and consumer properties. The properties templates in the python-demo folder outline the info you will need to input for your own cluster. Be sure to rename these files once your info is filled in to "producer.properties" and "consumer.properties"
+
+In the producer.py and consumer.py files, name your topic and consumer group whatever you'd like! They will be initialized when you define them for the first time.
+
+Have fun!
+
