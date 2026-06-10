@@ -17,5 +17,7 @@ You will need to obtain your API key and API secret to configure your producer a
 
 In the producer.py and consumer.py files, name your topic and consumer group whatever you'd like! They will be initialized when you define them for the first time.
 
+Refer to Kafka/Environment_Setup.md to set up a virtual Python environment to run your producer and consumer!
+
 Have fun!
 
