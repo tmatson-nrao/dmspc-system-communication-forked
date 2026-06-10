@@ -1,6 +1,7 @@
 import json
-
 from confluent_kafka import Consumer
+
+topic = "2nd_topic"
 
 def read_config():
   # reads the client configuration from client.properties
@@ -45,7 +46,6 @@ def consume(topic, config):
 
 def main():
   config = read_config()
-  topic = "2nd_topic"
 
   #produce(topic, config)
   consume(topic, config)
