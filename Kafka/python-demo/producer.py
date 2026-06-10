@@ -2,8 +2,6 @@ import json
 from confluent_kafka import Producer
 from stations import rcvr
 
-
-
 topic = "2nd_topic" # The topic to which the messages will be sent, rename accordingly
 
 with open('metadata.json', 'r') as file:
@@ -29,11 +27,9 @@ def read_config():
   return config
 
 
-
 # serialize to JSON string (UTF-8)
 key_bytes = rcvr_DSN.encode("utf-8")
 value_bytes = json.dumps(metadata).encode("utf-8")
-
 
 
 def produce(topic, config, key, value):
@@ -48,13 +44,10 @@ def produce(topic, config, key, value):
   producer.flush()
 
 
-
-
 def main():
   config = read_config()
 
   produce(topic, config, key_bytes, value_bytes)
-
 
 
 main()
