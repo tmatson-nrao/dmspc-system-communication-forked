@@ -49,7 +49,7 @@ def consume(topic, config):
           file.write(value)
           
 
-        send_time = float(meta.get('created_timestamp')) # extract timestamp from header
+        send_time = float(meta.get('message_timestamp')) # extract timestamp from header
 
         latency_ms = (time.time() - send_time)*1000 #calculate latency in ms
 
