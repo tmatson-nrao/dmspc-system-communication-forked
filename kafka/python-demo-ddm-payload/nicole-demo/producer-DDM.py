@@ -4,7 +4,7 @@ from confluent_kafka import Producer
 topic = "DDM-payload"  # NOTE The topic to which the messages will be sent, rename accordingly to whatever topic you want to send the DDM payloads to.
 
 
-with open('usa.png', 'rb') as file: # reading in the DDM payload as bytes from a file. You can replace this with however you are getting the DDM payload, just make sure it's in bytes format.
+with open('DDM.png', 'rb') as file: # reading in the DDM payload as bytes from a file. You can replace this with however you are getting the DDM payload, just make sure it's in bytes format.
   DDM = file.read()
 
 
@@ -22,7 +22,7 @@ def read_config():
 
 
 value_bytes = DDM # the value of the message is the DDM payload, which is read in as bytes from the file. We don't need to encode it as we did with the JSON string in the previous demo because it's already in bytes format.
-print("length of DDM payload in bytes:", len(value_bytes)) # printing the length of the DDM payload in bytes to verify that it's being read in correctly.
+print(f"Size of DDM payload: {len(value_bytes)} bytes.") # check size before sending
 
 def produce(topic, config, value):
   # creates a new producer instance
