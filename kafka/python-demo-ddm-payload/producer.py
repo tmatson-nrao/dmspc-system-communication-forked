@@ -22,6 +22,7 @@ def read_config():
         config[parameter] = value.strip()
   return config
 
+
 bytes = len(DDM)
 
 metadata = {
