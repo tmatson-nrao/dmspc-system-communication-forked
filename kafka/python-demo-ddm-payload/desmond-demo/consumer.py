@@ -53,7 +53,6 @@ def consume(topic, config, consumer_group):
     consumer.close()
 
 def saveImage(IMG_JSON):
-    IMG_JSON = base64.b64encode(IMG_JSON.encode('utf-8'))
     imageInBytes = base64.b64decode(IMG_JSON)
     
     print("Saving Image")
