@@ -1,9 +1,12 @@
 from uuid import uuid4
 import subprocess
+import time
 from confluent_kafka import Consumer
+
 
 topic = "DDM_png"   # NOTE The topic which the messages will be received from, rename accordingly
 consumer_group = "gbt-group"  # NOTE rename to whatever consumer group name you want to use
+
 
 def read_config():
   # reads the client (consumer) configuration from consumer.properties
@@ -36,17 +39,20 @@ def consume(topic, config):
       if msg is not None and msg.error() is None:
         value = msg.value() # loading the message back into a dictionary so we can access the individual fields.
 
-        filename = f"received-DDM-{uuid4()}.png" 
-        # creating a unique filename for the received DDM payload 
-        # using a random UUID. You can change this to whatever naming convention you want.
+        filename = f"received-DDM-{uuid4()}.png" # creating a unique filename for the received DDM payload using a random UUID. You can change this to whatever naming convention you want.
         
         with open(filename, 'wb') as file: # writing the received DDM payload to a file in bytes format.
           file.write(value)
           
         subprocess.run(["xdg-open", filename])
-        # opens the image file in a new window
 
-        print(f"Saved {filename} ({len(value)} bytes).")
+        headers = dict(msg.headers()) #get headers from message
+
+        send_time = float(headers["send_time"]) # extract timestamp from header
+
+        latency_ms = (time.time() - send_time)*1000 #calculate latency in ms
+
+        print(f"Saved {filename} ({len(value)} bytes). Latency: {latency_ms:.2f} ms")
 
   except KeyboardInterrupt:
     pass
@@ -56,7 +62,6 @@ def consume(topic, config):
 
 
 def main():
-  
   config = read_config()
 
   consume(topic, config)
