@@ -2,6 +2,9 @@ from uuid import uuid4
 import subprocess
 from confluent_kafka import Consumer
 
+topic = "DDM_png"   # NOTE The topic which the messages will be received from, rename accordingly
+consumer_group = "gbt-group"  # NOTE rename to whatever consumer group name you want to use
+
 def read_config():
   # reads the client (consumer) configuration from consumer.properties
   # and returns it as a key-value map
@@ -53,8 +56,6 @@ def consume(topic, config):
 
 
 def main():
-  topic = "DDM_png"   # NOTE The topic which the messages will be received from, rename accordingly
-  consumer_group = "gbt-group"  # NOTE rename to whatever consumer group name you want to use
   
   config = read_config()
 
