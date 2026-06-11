@@ -1,8 +1,9 @@
 import hashlib
+import json
 from confluent_kafka import Consumer
 
 
-topic = "DDM-Payload"   # NOTE The topic which the messages will be received from, rename accordingly to whatever topic you are using
+topic = "DDM_Payload"   # NOTE The topic which the messages will be received from, rename accordingly to whatever topic you are using
 consumer_group = "gbt-group"  # NOTE rename to whatever consumer group name you want to use
 
 
@@ -35,16 +36,18 @@ def consume(topic, config):
       # consumer polls the topic and prints any incoming messages
       msg = consumer.poll(1.0) # polls for messages for 1 second
       if msg is not None and msg.error() is None:
-        #key = None
-        value = msg.value() 
+        key = msg.key().decode("utf-8")
+        value = msg.value()
+        headers = dict(msg.headers() or []) # 
+        meta = json.loads(headers.get("DDM metadata", b"{}").decode("utf-8")) # 
 
         digest = hashlib.sha256(value).hexdigest()
-        filename = f"received-DDM-{digest}.png" # creating a unique filename for the received DDM payload using a random UUID. You can change this to whatever naming convention you want.
+        filename = f"received-DDM-{digest:.15}.png" # creating a unique filename for the received DDM payload using a random UUID. You can change this to whatever naming convention you want.
         
         with open(filename, 'wb') as file: # writing the received DDM payload to a file in bytes format.
           file.write(value)
           
-        print(f"Saved {filename} ({len(value)} bytes).") 
+        print(f"Saved DDM for obs_id {meta.get('obs_id')} as {filename} ({len(value)} bytes). Image created at {meta.get('created')}.") 
 
   except KeyboardInterrupt: 
     pass

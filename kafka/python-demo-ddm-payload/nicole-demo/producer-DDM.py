@@ -1,7 +1,9 @@
+import json
+import time
 from confluent_kafka import Producer
 
 
-topic = "DDM-Payload"  # NOTE The topic to which the messages will be sent, rename accordingly to whatever topic you want to send the DDM payloads to.
+topic = "DDM_Payload"  # NOTE The topic to which the messages will be sent, rename accordingly to whatever topic you want to send the DDM payloads to.
 
 
 with open('DDM.png', 'rb') as file: # reading in the DDM payload as bytes from a file. You can replace this with however you are getting the DDM payload, just make sure it's in bytes format.
@@ -20,16 +22,30 @@ def read_config():
         config[parameter] = value.strip()
   return config
 
+bytes = len(DDM)
 
-value_bytes = DDM # the value of the message is the DDM payload, which is read in as bytes from the file. We don't need to encode it as we did with the JSON string in the previous demo because it's already in bytes format.
+metadata = {
+    "obs_id":"ddm-001",
+    "source":"DSOC", 
+    "type/format":"image/png",
+    "created":"2026-06-04 15:05:20.103Z",
+    "message_timestamp": f"{time.time()}",
+    "bytes": f"{bytes}"
+    }
+meta_bytes = json.dumps(metadata).encode("utf-8")
+
+
+key = metadata["obs_id"].encode("utf-8")
+headers = [("DDM metadata", meta_bytes)] 
+value_bytes = DDM # the value of the message is the DDM payload, which is read in as bytes from the file. We don't need to encode it as we did with the JSON string because it's already in bytes format.
 print(f"Size of DDM payload: {len(value_bytes)} bytes.") # check size before sending
 
-def produce(topic, config, value):
+def produce(topic, config, key, value, headers):
   # creates a new producer instance
   producer = Producer(config)
 
   # producing a message to the specified topic with the DDM payload as the value. The key is set to None since we are not using it in this example, but you could set it to something if you wanted to. Just make sure to encode it as bytes like we do with the value.
-  producer.produce(topic, key=None, value=value) 
+  producer.produce(topic, key=key, value=value, headers=headers) 
   print(f"Produced payload to topic {topic}.")
 
   # send any outstanding or buffered messages to the Kafka broker
@@ -39,7 +55,7 @@ def produce(topic, config, value):
 def main():
   config = read_config()
 
-  produce(topic, config, value_bytes)
+  produce(topic, config, key, value_bytes, headers)
 
 
 main()
