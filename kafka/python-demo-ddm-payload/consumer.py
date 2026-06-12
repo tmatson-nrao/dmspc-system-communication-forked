@@ -1,5 +1,7 @@
 import hashlib
 import json
+import os
+import csv
 import time
 from PIL import Image
 from confluent_kafka import Consumer
@@ -7,6 +9,24 @@ from confluent_kafka import Consumer
 
 topic = "DDM_Payload"   # NOTE The topic which the messages will be received from, rename accordingly to whatever topic you are using
 consumer_group = "gbt-group"  # NOTE rename to whatever consumer group name you want to use
+
+stats_file = "ddm_stats.csv"
+
+
+def append_stats(num_bytes, latency_ms,filename=None):
+  """Append DDM payload statistics for later analysis."""
+  
+  fieldnames = ["filename", "num_bytes", "latency_ms"]
+  file_exists = os.path.exists(stats_file)
+  with open(stats_file, "a", newline="") as fh:
+    writer = csv.DictWriter(fh, fieldnames=fieldnames)
+    if not file_exists:
+      writer.writeheader()
+    writer.writerow({
+      "filename": filename or "",
+      "num_bytes": num_bytes,
+      "latency_ms": f"{latency_ms:.2f}"
+    })
 
 
 def read_config():
@@ -54,8 +74,14 @@ def consume(topic, config):
         latency_ms = (time.time() - send_time)*1000 #calculate latency in ms
 
         print(f"Saved DDM for obs_id '{meta.get('obs_id')}' as {filename} ({len(value)} bytes). Image created at {meta.get('created_timestamp')} by {meta.get('source')}. Latency: {latency_ms:.2f} ms") 
-        
-        # open and displaythe consumed image
+
+        append_stats(
+          num_bytes=len(value),
+          latency_ms=latency_ms,
+          filename=filename
+        )
+
+        # open and display the consumed image
         img = Image.open(filename)
         img.show()
 
