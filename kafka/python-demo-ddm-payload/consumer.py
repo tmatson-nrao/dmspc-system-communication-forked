@@ -1,6 +1,7 @@
 import hashlib
 import json
 import time
+from PIL import Image
 from confluent_kafka import Consumer
 
 
@@ -47,13 +48,16 @@ def consume(topic, config):
         
         with open(filename, 'wb') as file: # writing the received DDM payload to a file in bytes format.
           file.write(value)
-          
 
         send_time = float(meta.get('message_timestamp')) # extract timestamp from header
 
         latency_ms = (time.time() - send_time)*1000 #calculate latency in ms
 
         print(f"Saved DDM for obs_id '{meta.get('obs_id')}' as {filename} ({len(value)} bytes). Image created at {meta.get('created_timestamp')} by {meta.get('source')}. Latency: {latency_ms:.2f} ms") 
+        
+        # open and displaythe consumed image
+        img = Image.open(filename)
+        img.show()
 
   except KeyboardInterrupt: 
     pass
