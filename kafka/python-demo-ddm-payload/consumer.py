@@ -1,7 +1,7 @@
 import hashlib
 import json
 import time
-import subprocess
+from PIL import Image
 from confluent_kafka import Consumer
 
 
@@ -55,7 +55,9 @@ def consume(topic, config):
 
         print(f"Saved DDM for obs_id '{meta.get('obs_id')}' as {filename} ({len(value)} bytes). Image created at {meta.get('created_timestamp')} by {meta.get('source')}. Latency: {latency_ms:.2f} ms") 
         
-        subprocess.run(["xdg-open", filename])  # open the consumed image (works in Linux only)
+        # open and displaythe consumed image
+        img = Image.open(filename)
+        img.show()
 
   except KeyboardInterrupt: 
     pass
