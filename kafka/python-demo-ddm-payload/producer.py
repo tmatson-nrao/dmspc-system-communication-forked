@@ -1,12 +1,18 @@
 import json
 import time
+import sys
 from confluent_kafka import Producer
 
 
 topic = "DDM_Payload"  # NOTE The topic to which the messages will be sent, rename accordingly to whatever topic you want to send the DDM payloads to.
 
+# gets the file path from command line arguments or uses a default
+if len(sys.argv) > 1:
+    filepath = sys.argv[1]
+else:
+    filepath = 'molniya.png'
 
-with open('DDM.png', 'rb') as file: # reading in the DDM payload as bytes from a file. You can replace this with however you are getting the DDM payload, just make sure it's in bytes format.
+with open(filepath, 'rb') as file: # reading in the DDM payload as bytes from a file. You can replace this with however you are getting the DDM payload, just make sure it's in bytes format.
   DDM = file.read()
 
 
@@ -25,8 +31,12 @@ def read_config():
 
 bytes = len(DDM)
 
+# sets the observation ID for the DDM payload
+obs_id = "ddm-" + filepath
+obs_id = obs_id.replace(".png", "")
+
 metadata = {
-    "obs_id":"ddm-001",
+    "obs_id":obs_id,
     "source":"DSOC", 
     "type/format":"image/png",
     "created_timestamp": f"{time.time()-5}", # 
