@@ -53,6 +53,7 @@ print(f"Size of DDM payload: {len(value_bytes)} bytes.") # check size before sen
 
 def produce(topic, config, key, value, headers):
   # creates a new producer instance
+  config["enable.metrics.push"] = False
   producer = Producer(config)
 
   # producing a message to the specified topic with the DDM payload as the value. The key is set to None since we are not using it in this example, but you could set it to something if you wanted to. Just make sure to encode it as bytes like we do with the value.

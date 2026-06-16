@@ -46,6 +46,7 @@ def consume(topic, config):
   # sets the consumer group ID and offset
   config["group.id"] = consumer_group
   config["auto.offset.reset"] = "earliest"
+  config["enable.metrics.push"] = False
 
   # creates a new consumer instance
   consumer = Consumer(config)

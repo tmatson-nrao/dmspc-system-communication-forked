@@ -37,6 +37,7 @@ value_bytes = json.dumps(metadata).encode("utf-8")
 
 def produce(topic, config, key, value):
   # creates a new producer instance
+  config["enable.metrics.push"] = False
   producer = Producer(config)
 
   # produces a sample message
