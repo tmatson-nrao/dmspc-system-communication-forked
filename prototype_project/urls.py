@@ -16,9 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import views as auth_views 
+from django.views.generic.base import RedirectView, TemplateView
+
+
 
 urlpatterns = [
+    path('', RedirectView.as_view(url='/login/', permanent=False)),
+    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('ngRadar_Website/', TemplateView.as_view(template_name='ngRadar_Website/index.html'), name='home'),
     path('admin/', admin.site.urls),
-    path('', include('ngRadar_Website.urls')),
     
 ]
