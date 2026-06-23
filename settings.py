@@ -124,11 +124,20 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-LOGIN_REDIRECT_URL = '/ngRadar_Website/'
-LOGIN_URL = '/login/'
 
-LOGIN_REQUIRED_IGNORE_PATHS = [
-    r'^login/$',
+# Authentication
+# https://docs.djangoproject.com/en/6.0/topics/auth/default/
+
+LOGIN_URL = 'login'           # where @login_required sends anonymous users
+LOGIN_REDIRECT_URL = 'index'  # where login sends you on success
+LOGOUT_REDIRECT_URL = 'login' # where logout returns you
+
+# main version 
+# LOGIN_REDIRECT_URL = '/ngRadar_Website/'
+# LOGIN_URL = '/login/'
+
+# LOGIN_REQUIRED_IGNORE_PATHS = [
+#     r'^login/$',
 ]
 
 # ==============================================================================

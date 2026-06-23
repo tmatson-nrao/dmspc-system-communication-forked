@@ -19,6 +19,12 @@ urlpatterns = [
 
     path('ngRadar_Website/', TemplateView.as_view(template_name='ngRadar_Website/index.html'), name='home'),
     path('admin/', admin.site.urls),
+
+    # built-in auth views: login, logout, password change/reset, etc.
+    # provides url names 'login' and 'logout' and use templates under registration 
+    path('accounts/', include('django.contrib.auth.urls')),
+    
+    
 ]
 
 
