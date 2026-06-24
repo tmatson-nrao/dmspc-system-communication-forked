@@ -5,6 +5,23 @@ from argon2 import PasswordHasher
 ph = PasswordHasher()  # Initialize the PasswordHasher instance
 
 
+class User(models.Model):
+    uuid = models.UUIDField(primary_key=True, editable=False)
+    username = models.CharField(max_length=150)
+    password = models.CharField(max_length=128)
+
+    # Hash the password before saving it to the database
+    def set_password(self, raw_password):
+        self.password = ph.hash(raw_password)
+    
+    # Check if the provided password matches the hashed password stored in the database
+    def check_password(self, raw_password):
+        try:
+            return ph.verify(self.password, raw_password)
+        except Exception:
+            return False
+
+
 class ObservatoryEvent(models.Model):
     # Mapping to your payload variables
     obs_id = models.CharField(max_length=100)
@@ -37,45 +54,6 @@ class ObservatoryEvent(models.Model):
 
     def __str__(self):
         return f"Obs: {self.obs_id} | {self.xmit_station_id} -> {self.rcvr_station_id}"
-    
-
-    # def also need a user login credentials table because I deleted the
-    # migration with our dummy login credentials, so we def need
-    # a way to store and retrieve credentials.
-
-    # what other tables may we need?
 
 
-class User(models.Model):
-    uuid = models.UUIDField(primary_key=True, editable=False)
-    username = models.CharField(max_length=150)
-    password = models.CharField(max_length=128)
-
-    # Hash the password before saving it to the database
-    def set_password(self, raw_password):
-        self.password = ph.hash(raw_password)
-    
-    # Check if the provided password matches the hashed password stored in the database
-    def check_password(self, raw_password):
-        try:
-            return ph.verify(self.password, raw_password)
-        except Exception:
-            return False
-
-
-class TwoLineElement(models.Model):
-    id = models.AutoField(primary_key=True)
-    metadata = models.JSONField()
-
-
-class Predict(models.Model):
-    id = models.AutoField(primary_key=True)
-    metadata = models.JSONField()
-    fileLocation = models.CharField(max_length=255)
-
-
-class TargetDetection(models.Model):
-    id = models.AutoField(primary_key=True)
-    metadata = models.JSONField()
-    imageLocation = models.ImageField(upload_to='target_detection_images/')
-
+# what other tables may we need?
