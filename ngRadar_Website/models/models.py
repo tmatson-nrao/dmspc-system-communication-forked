@@ -1,4 +1,11 @@
+#libraries to get files from the outside directory
+import sys
+from pathlib import Path
+
 from django.db import models
+
+outside_dir = str(Path(__file__).resolve().parents[1])
+sys.path.append(outside_dir)
 from enums import Stations
 
 

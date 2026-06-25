@@ -102,7 +102,7 @@ services:
     container_name: local_tunnel
     restart: unless-stopped
     environment:
-      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+      - NGROK_AUTHTOKEN=3FSdObr4EqtlGEDIuNTMkbyC3cf_4BM9CPuSTjnf7exTASRS7
     command:
       - "tcp"
       - "kafka:9094" # Directs raw binary TCP traffic straight to the Kafka container

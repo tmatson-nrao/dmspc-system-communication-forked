@@ -1,6 +1,24 @@
+#libraries to get files from the outside directory
+import sys, os
+from pathlib import Path
+
+#libraries used for data streaming
+import json
+from django.http import StreamingHttpResponse
+
 from django.shortcuts import render
+
+script_dir = os.path.dirname(os.path.realpath(__file__))
+absolute_path = os.path.abspath(os.path.join(script_dir, '../models'))
+sys.path.append(absolute_path)
+
 from models import ObservatoryEvent
-from enum import Stations # if needed? if not, pls delete
+from enums import Stations # if needed? if not, pls delete
+
+#import the producer
+outside_dir = str(Path(__file__).resolve().parents[2])
+sys.path.append(outside_dir)
+from mock_producer import run_mock_producer
 
 
 def get_dashboard_context():
