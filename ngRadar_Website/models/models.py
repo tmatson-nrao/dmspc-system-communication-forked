@@ -1,25 +1,6 @@
 from django.db import models
 from ngRadar_Website.enums import Stations
-from argon2 import PasswordHasher
 
-ph = PasswordHasher()  # Initialize the PasswordHasher instance
-
-
-class User(models.Model):
-    uuid = models.UUIDField(primary_key=True, editable=False)
-    username = models.CharField(max_length=150)
-    password = models.CharField(max_length=128)
-
-    # Hash the password before saving it to the database
-    def set_password(self, raw_password):
-        self.password = ph.hash(raw_password)
-    
-    # Check if the provided password matches the hashed password stored in the database
-    def check_password(self, raw_password):
-        try:
-            return ph.verify(self.password, raw_password)
-        except Exception:
-            return False
 
 
 class ObservatoryEvent(models.Model):

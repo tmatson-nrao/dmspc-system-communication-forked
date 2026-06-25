@@ -1,7 +1,5 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.contrib.auth import views as auth_views 
-from django.views.generic.base import RedirectView, TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 from ngRadar_Website.views import views
@@ -9,25 +7,19 @@ from ngRadar_Website.views import views
 
 
 urlpatterns = [
-    # Need to verify these urls all work as expected after all the restructuring
-    path('', RedirectView.as_view(url='/login/', permanent=False)),
-
-
-    # this is the current login view - a Django built in "LoginView", but should we create a custom login view?
-    # that way when we store user credentials in db, we can have more control over the authentication process?
-    path('/login/', views.login_view(template_name='/registration/login.html'), name='login'),
-
-    path('ngRadar_Website/', TemplateView.as_view(template_name='ngRadar_Website/index.html'), name='home'),
+    path('', views.login_view, name='login_root'), 
+    path('login/', views.login_view, name='login'),
     path('admin/', admin.site.urls),
+    path('', include('ngRadar_Website.urls')),
 
     # built-in auth views: login, logout, password change/reset, etc.
     # provides url names 'login' and 'logout' and use templates under registration 
-    path('accounts/', include('django.contrib.auth.urls')),
-    
-    
+    # path('accounts/', include('django.contrib.auth.urls')),
 ]
 
 
 # FOR PROTOTYPE ONLY: Allows browser to access the local /media/ folder images
 if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
