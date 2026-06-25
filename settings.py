@@ -128,16 +128,17 @@ STATIC_URL = 'static/'
 # Authentication
 # https://docs.djangoproject.com/en/6.0/topics/auth/default/
 
-LOGIN_URL = 'login'           # where @login_required sends anonymous users
-LOGIN_REDIRECT_URL = 'index'  # where login sends you on success
-LOGOUT_REDIRECT_URL = 'login' # where logout returns you
+LOGIN_URL = 'login'            # name of the login route in urls.py
+LOGIN_REDIRECT_URL = 'home'    # after login -> /ngRadar_Website/ (renders index.html)
+LOGOUT_REDIRECT_URL = 'login'  # after logout -> back to the login page
 
-# main version 
+# main version
 # LOGIN_REDIRECT_URL = '/ngRadar_Website/'
 # LOGIN_URL = '/login/'
 
-# LOGIN_REQUIRED_IGNORE_PATHS = [
-#     r'^login/$',
+# Let everyone see the login page; LoginRequiredMiddleware guards every other page.
+LOGIN_REQUIRED_IGNORE_PATHS = [
+    r'^/login/$',
 ]
 
 # ==============================================================================

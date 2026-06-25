@@ -4,7 +4,10 @@ from django.contrib.auth import views as auth_views
 from django.views.generic.base import RedirectView, TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
+<<<<<<< HEAD
 
+=======
+>>>>>>> c4e3129 (basic UI for login page)
 
 
 
