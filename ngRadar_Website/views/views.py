@@ -1,5 +1,5 @@
 #libraries to get files from the outside directory
-import sys, os
+import sys
 from pathlib import Path
 
 #libraries used for data streaming
@@ -10,6 +10,10 @@ from django.shortcuts import render
 from ngRadar_Website.models.models import ObservatoryEvent
 from enum import Stations # if needed? if not, pls delete
 
+#import the producer
+outside_dir = str(Path(__file__).resolve().parents[2])
+sys.path.append(outside_dir)
+from mock_producer import run_mock_producer
 
 def get_dashboard_context():
     """Helper function to keep data uniform across view updates"""
