@@ -1,7 +1,5 @@
 .DS_Store
 *.properties
-.investigate/
-milestones.md
 ngRadar_Website/.env
 .env
 __pycache__/
