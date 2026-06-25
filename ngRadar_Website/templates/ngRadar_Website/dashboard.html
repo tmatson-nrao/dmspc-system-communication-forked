@@ -1,15 +1,58 @@
-<!-- this is the main dashboard template
-bring over most of the UI design from the existing base + index templates
-but will need to embed the partial here too for the observatory event table
-and the partial for the user inputted data to update the waveform -->
+{% extends 'ngRadar_Website/base.html' %}
+{% load static %}
 
-<!-- Consider HTMX for a more dynamic user experience, but there may be better options available.
-Something like this: -->
+{% block title %}System Communication Demo{% endblock %}
 
-    <!-- <div id="dashboard-content" 
+{% block content %}
+<link rel="stylesheet" href="{% static 'ngRadar_Website/css/globals.css' %}">
+<link rel="stylesheet" href="{% static 'ngRadar_Website/css/styleguide.css' %}">
+<link rel="stylesheet" href="{% static 'ngRadar_Website/css/style.css' %}">
+
+<!-- Integrating Bootstrap CDN safely for data table and metrics cards alignment -->
+<link href="https://jsdelivr.net" rel="stylesheet">
+<!-- HTMX Engine Injection -->
+<script src="https://unpkg.com"></script>
+
+<main class="desktop" data-color-mode="SDS-light">
+    <!-- Header -->
+    <header>
+        <img class="logogroupcolor" src="{% static 'ngRadar_Website/images/logo.png' %}" alt="NSF, Associated Universities, Inc., and National Radio Astronomy Observatory logos" />
+        <h1 class="text-wrapper-5">System Communication Demo</h1>
+    </header>
+    
+    <!-- Line Elements -->
+    <img class="img" src="{% static 'ngRadar_Website/img/line-1.svg' %}" alt="" aria-hidden="true" />
+    <img class="line" src="{% static 'ngRadar_Website/img/line-2.svg' %}" alt="" aria-hidden="true" />
+    
+    <!-- Navigation Menu Layout -->
+    <nav aria-label="Primary" class="mb-5">
+        <button class="button-5" type="button" aria-label="Open Tx Logs">
+            <span class="button-2">Tx Logs</span>
+        </button>
+        <button class="button-4" type="button" aria-label="Open PRDX Files">
+            <span class="button-2">PRDX Files</span>
+        </button>
+        <button class="button-3" type="button" aria-label="Open DDM History">
+            <span class="button-2">DDM History</span>
+        </button>
+        <button class="button" type="button" aria-label="Open CW Plot History">
+            <span class="button-2">CW Plot History</span>
+        </button>
+    </nav>
+
+    <!-- REAL-TIME LIVESTREAM DASHBOARD TARGET ZONE -->
+    <!-- Polls the Django views every 3 seconds to inject raw database metrics below the menu -->
+    <div id="dashboard-content" 
          hx-get="{% url 'event_table_update' %}" 
          hx-trigger="every 3s" 
          hx-target="#dashboard-content"
          class="container-fluid px-0 mt-4">
         {% include 'partials/dashboard_updates.html' %}
-    </div> -->
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-5 pt-4 text-center border-top">
+        <p class="text-wrapper-7">Developed by Cohort 1</p>
+    </footer>
+</main>
+{% endblock %}

@@ -11,10 +11,10 @@
                     ngRadar Sign in
                 </h1>
 
-                {% if form.errors %}
-                <div class = "alert alert-danger" role="alert">
-                    Your username and password didn't match. Please try again.
-                </div>
+               {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-danger">{{ message }}</div>
+                    {% endfor %}
                 {% endif %}
 
                 <form method="post" action="{%url 'login'%}">

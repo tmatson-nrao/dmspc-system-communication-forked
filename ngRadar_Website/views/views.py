@@ -1,6 +1,23 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from ngRadar_Website.models.models import ObservatoryEvent
+from ngRadar_website.models.models import Users
+from django.contrib import messages
 from enum import Stations # if needed? if not, pls delete
+
+
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = Users.objects.filter(username=username, password=password).first()
+        if user:
+            # Login successful
+            return render(request, user, 'dashboard')
+        else:
+            # Login failed
+            messages.error(request, "Invalid username or password.")
+            return redirect('login') 
 
 
 def get_dashboard_context():
@@ -30,6 +47,7 @@ def event_table_partial(request):
     return render(request, 'dashboard_updates.html', context) # pass any other vars to frontend here
 
 # Need a function AND another partial template for handling the user inputted payload
+# Don't worry about this until Sprint 45 I think
 def user_input_partial(request):
     # this is the partial template view for handling user input
     # can we store user inputted data to the database here? should we?
@@ -37,7 +55,3 @@ def user_input_partial(request):
     return render(request, 'user_input.html') # just an example .html, have not actually created this
 
 
-# I feel like we should have a robust login view here to validate user credentials before allowing access to the dashboard.
-def login_view(request):
-    # Handle user login logic here
-    pass # placeholder for login logic

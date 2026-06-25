@@ -4,10 +4,7 @@ from django.contrib.auth import views as auth_views
 from django.views.generic.base import RedirectView, TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
-<<<<<<< HEAD
-
-=======
->>>>>>> c4e3129 (basic UI for login page)
+from ngRadar_Website.views import views
 
 
 
@@ -18,7 +15,7 @@ urlpatterns = [
 
     # this is the current login view - a Django built in "LoginView", but should we create a custom login view?
     # that way when we store user credentials in db, we can have more control over the authentication process?
-    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('/login/', views.login_view(template_name='/registration/login.html'), name='login'),
 
     path('ngRadar_Website/', TemplateView.as_view(template_name='ngRadar_Website/index.html'), name='home'),
     path('admin/', admin.site.urls),
