@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import views
+from . import views #add the functions with streamed data here
 
 urlpatterns = [
     # Have not tested if this works as expected
