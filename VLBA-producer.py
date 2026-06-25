@@ -6,7 +6,7 @@ from confluent_kafka import Producer
 
 topic = "DSOC_data"  #NOTE The topic to which the messages will be sent, rename accordingly to whatever topic you want to send the DDM payloads to.
 
-run = False #set to True when you're ready to produce to kafka.
+run = True #set to True when you're ready to produce to kafka.
 
 def read_config():
   #reads the client (producer) configuration from producer.properties
@@ -35,11 +35,11 @@ def produce(topic, config, key, value):
 
 
 
-with open("DSOC-data.csv", newline="") as f:
+with open("mock_assets/DSOC-data.csv", newline="") as f:
     reader = csv.DictReader(f, delimiter=" ")  #uses header row as keys
     for row in reader:
         if row["Image"]:
-            with open(row["Image"], 'rb') as file :
+            with open(f"mock_assets/{row["Image"]}", 'rb') as file :
                 image = file.read()
         else: None
     
@@ -52,7 +52,8 @@ with open("DSOC-data.csv", newline="") as f:
             "Timestamp": f"{time.time()}",
             "Type": row["Type"],
             "Bytes": f"{len(image)}" if row["Image"] else None,
-            "Image": f"{image}" if row["Image"] else None
+            "Image": f"{image}" if row["Image"] else None, 
+            "Image_ID": row["Image_ID"]
         }
         #print(payload) sanity check
 

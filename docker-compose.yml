@@ -14,7 +14,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,EXTERNAL://4.tcp.ngrok.io:22010'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,EXTERNAL://0.tcp.ngrok.io:13911' #on work station, after authenticating ngrok token, ngrok tcp 9094 to get ngrok host:port to paste into EXTERNAL
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT'
 
   kafka-ui:
@@ -51,16 +51,3 @@ services:
     depends_on:
       - kafka
       - local-postgres
-
-  # A TCP Tunneling Engine
-  #ngrok:
-  #  image: ngrok/ngrok:latest
-  #  container_name: local_tunnel
-  #  restart: unless-stopped
-  #  environment:
-  #    - NGROK_AUTHTOKEN=3FbD2TeXw7sTYaw0EInMORbBEb0_768xMDdwyjyMBE2nvPBDy
-  #  command:
-  #    - "tcp"
-  #    - "kafka:9094" # Directs raw binary TCP traffic straight to the Kafka container
-  #  depends_on:
-  #    - kafka
