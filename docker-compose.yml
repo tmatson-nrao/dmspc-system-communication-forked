@@ -1,64 +1,73 @@
 services:
   
-  kafka:
-    image: apache/kafka:3.7.0
-    container_name: local_kafka
-    ports:
-      - "9092:9092"   # Traffic inside the internal Docker Network
-      - "9094:9094"   # Traffic from outside via ngrok
-    environment:
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: 'broker,controller'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:9093'
-      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,EXTERNAL://0.0.0.0:9094'
-      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
-      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,EXTERNAL://4.tcp.ngrok.io:22010'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT'
+#=====================================================
+# Should this go in a separate docker-compose file
+# on the workstation computer only?
+#=====================================================
+  # kafka:
+  #   image: apache/kafka:3.7.0
+  #   container_name: local_kafka
+  #   ports:
+  #     - "9092:9092"   # Traffic inside the internal Docker Network
+  #     - "9094:9094"   # Traffic from outside via ngrok
+  #   environment:
+  #     KAFKA_NODE_ID: 1
+  #     KAFKA_PROCESS_ROLES: 'broker,controller'
+  #     KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:9093'
+  #     KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,EXTERNAL://0.0.0.0:9094'
+  #     KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+  #     KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+  #     KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+  #     KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,EXTERNAL://4.tcp.ngrok.io:22010'
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT'
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: kafka_dashboard
-    ports:
-      - "8080:8080" # Open http://localhost:8080 in web browser to access the Kafka UI
-    environment:
-      DYNAMIC_CONFIG_ENABLED: 'true'
-      KAFKA_CLUSTERS_0_NAME: 'local-cluster'
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: 'kafka:9092'
-    depends_on:
-      - kafka
 
-  local-postgres:
-    image: postgres:16-alpine
-    container_name: local_postgres
-    ports:
-      - "5432:5432" # Exposed to PC for DBeaver (Database Management Tool similar to pgAdmin)
-    environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mylocaldb
+#=====================================================
+# Should this go in a separate docker-compose file
+# on the workstation computer only?
+#=====================================================
+  # kafka-ui:
+  #   image: provectuslabs/kafka-ui:latest
+  #   container_name: kafka_dashboard
+  #   ports:
+  #     - "8080:8080" # Open http://localhost:8080 in web browser to access the Kafka UI
+  #   environment:
+  #     DYNAMIC_CONFIG_ENABLED: 'true'
+  #     KAFKA_CLUSTERS_0_NAME: 'local-cluster'
+  #     KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: 'kafka:9092'
+  #   depends_on:
+  #     - kafka
 
-  django-consumer:
+
+  ngradar_website:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: django_consumer
-    command: python manage.py run_consumer
+    container_name: ngradar_website
+    # command: python manage.py run_consumer -> need to uncomment later!!! For our consumer to actively "listen" for new messages, this is what triggers it to start listening
     environment:
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - DATABASE_URL=postgres://myuser:mypassword@local-postgres:5432/mylocaldb # What should this be?
-    depends_on:
-      - kafka
-      - local-postgres
+      # - KAFKA_BOOTSTRAP_SERVERS=kafka:9092 -> idk???
+      - DATABASE_URL=${DATABASE_URL}
+    # depends_on:
+      # - kafka -> idk???
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./media:/app/media
 
+
+
+#=====================================================
+# Should this go in a separate docker-compose file
+# on the workstation computer only?
+#=====================================================
   # A TCP Tunneling Engine
   #ngrok:
   #  image: ngrok/ngrok:latest
   #  container_name: local_tunnel
   #  restart: unless-stopped
   #  environment:
-  #    - NGROK_AUTHTOKEN=3FbD2TeXw7sTYaw0EInMORbBEb0_768xMDdwyjyMBE2nvPBDy
+  #    - NGROK_AUTHTOKEN=
   #  command:
   #    - "tcp"
   #    - "kafka:9094" # Directs raw binary TCP traffic straight to the Kafka container

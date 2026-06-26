@@ -35,7 +35,6 @@ def login_view(request):
 #import the producer
 outside_dir = str(Path(__file__).resolve().parents[2])
 sys.path.append(outside_dir)
-from mock_producer import run_mock_producer
 
 def get_dashboard_context():
     """Helper function to keep data uniform across view updates"""
