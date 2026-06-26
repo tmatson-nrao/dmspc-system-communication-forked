@@ -14,7 +14,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 
-BASE_DIR = Path(__file__).resolve().parent
+# BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
@@ -22,8 +23,10 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
 # Allow local Docker containers AND Render's domain depending on environment
 # Have not tested this yet
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,django-consumer').split(',')
-
+ALLOWED_HOSTS = [
+    host.strip() 
+    for host in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+]
 
 # Application definition
 
@@ -42,6 +45,7 @@ MIDDLEWARE = [
     # the order of these is VERY important. 
     # if making changes, ensure the order is correct
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -51,15 +55,20 @@ MIDDLEWARE = [
     'login_required.middleware.LoginRequiredMiddleware',
 ]
 
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher', 
+]
+
 ROOT_URLCONF = 'urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'], 
+        'DIRS': [os.path.join(BASE_DIR, 'templates')], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -67,6 +76,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'wsgi.application'
 
@@ -121,23 +131,28 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'ngRadar_Website' / 'static',
+]
 
-STATIC_URL = 'static/'
 
-LOGIN_REDIRECT_URL = '/ngRadar_Website/'
-LOGIN_URL = '/login/'
+# Authentication
+# https://docs.djangoproject.com/en/6.0/topics/auth/default/
 
+LOGIN_URL = 'login'            # name of the login route in urls.py
+LOGIN_REDIRECT_URL = 'dashboard_home'    # after login -> /ngRadar_Website/dashboard.html
+LOGOUT_REDIRECT_URL = 'login'  # after logout -> back to the login page
+
+# Let everyone see the login page; LoginRequiredMiddleware guards every other page.
 LOGIN_REQUIRED_IGNORE_PATHS = [
-    r'^login/$',
+    r'^/login/$',
 ]
 
 # ==============================================================================
 # LOCAL WORKSTATION OBJECT STORAGE (ACTIVE FOR PROTOTYPING)
 # For prototype purposes only, to be replaved with cloud object storage later
 # ==============================================================================
-# not sure if the path is correct on these, have not tested
-# URL prefix for user-uploaded media files
 MEDIA_URL = '/media/'
-
-# Absolute path to the directory where media files are stored on disk
 MEDIA_ROOT = BASE_DIR / 'media'

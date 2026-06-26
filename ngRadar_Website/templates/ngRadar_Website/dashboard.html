@@ -1,15 +1,45 @@
-<!-- this is the main dashboard template
-bring over most of the UI design from the existing base + index templates
-but will need to embed the partial here too for the observatory event table
-and the partial for the user inputted data to update the waveform -->
+{% extends 'ngRadar_Website/base.html' %}
+{% load static %}
 
-<!-- Consider HTMX for a more dynamic user experience, but there may be better options available.
-Something like this: -->
+{% block title %}System Communication Demo{% endblock %}
 
-    <!-- <div id="dashboard-content" 
-         hx-get="{% url 'event_table_update' %}" 
-         hx-trigger="every 3s" 
-         hx-target="#dashboard-content"
-         class="container-fluid px-0 mt-4">
-        {% include 'partials/dashboard_updates.html' %}
-    </div> -->
+{% block content %}
+<link rel="stylesheet" href="{% static 'ngRadar_Website/css/global.css' %}">
+<link rel="stylesheet" href="{% static 'ngRadar_Website/css/styleguide.css' %}">
+<link rel="stylesheet" href="{% static 'ngRadar_Website/css/style.css' %}">
+
+<link href="https://jsdelivr.net" rel="stylesheet">
+<!-- HTMX Engine Injection -->
+<script src="https://unpkg.com"></script>
+
+<div class="dashboard-wrapper d-flex flex-column min-vh-100" data-color-mode="SDS-light">
+    
+   <header class="p-3 border-bottom d-flex align-items-center gap-3">
+    <img class="logogroupcolor" 
+         src="{% static 'ngRadar_Website/images/logo.png' %}" 
+         alt="NSF, Associated Universities, Inc., and National Radio Astronomy Observatory logos"
+         style="height: 50px; width: auto; object-fit: contain;" />
+         
+    <h1 class="text-wrapper-5 mb-0 fs-3">System Communication Demo</h1>
+</header>
+    
+    <main class="flex-grow-1 container-fluid px-4 my-4">
+        
+        <!-- REAL-TIME LIVESTREAM DASHBOARD TARGET ZONE -->
+        <!-- Polls the Django views every 3 seconds to inject raw database metrics below the header -->
+        <div id="dashboard-content" 
+             hx-get="{% url 'event_table_update' %}" 
+             hx-trigger="every 3s" 
+             hx-target="#dashboard-content"
+             class="w-100">
+            {% include 'ngRadar_Website/partials/dashboard_updates.html' %}
+        </div>
+
+    </main>
+
+    <footer class="mt-auto py-3 text-center border-top bg-light">
+        <p class="text-wrapper-7 mb-0">Developed by Cohort 1</p>
+    </footer>
+
+</div>
+{% endblock %}

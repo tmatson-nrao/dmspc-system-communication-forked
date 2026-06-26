@@ -3,7 +3,6 @@ import json
 import time
 import os
 from datetime import datetime
-from kafka import KafkaProducer
 
 """ 
     This producer simulates the sending of DDM payloads programmatically to a Kafka topic
@@ -14,112 +13,113 @@ from kafka import KafkaProducer
  """
 
 # Target configuration details matching your docker network parameters
-BOOTSTRAP_SERVERS = ['localhost:9092']
-TOPIC_NAME = 'DDM_Payload'
+# BOOTSTRAP_SERVERS = ['localhost:9092']
+# TOPIC_NAME = 'DDM_Payload'
 
-def get_binary_image_data(filename):
-    """Safely extracts local asset payloads from the workstation root."""
-    asset_path = os.path.join(os.path.dirname(__file__), 'mock_assets', filename)
-    if not os.path.exists(asset_path):
-        print(f"Warning: Mock asset source '{asset_path}' not found! Creating dummy bytes.")
-        return b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01'
-    with open(asset_path, 'rb') as f:
-        return f.read()
+# def get_binary_image_data(filename):
+    # """Safely extracts local asset payloads from the workstation root."""
+    # asset_path = os.path.join(os.path.dirname(__file__), 'mock_assets', filename)
+    # if not os.path.exists(asset_path):
+    #     print(f"Warning: Mock asset source '{asset_path}' not found! Creating dummy bytes.")
+    #     return b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01'
+    # with open(asset_path, 'rb') as f:
+    #     return f.read()
+    # pass
 
-def run_mock_producer():
-    print(f"Initializing Mock Producer targeting {BOOTSTRAP_SERVERS}...")
-    try:
-        # Note: We do NOT use a value_serializer because value is raw binary image data
-        producer = KafkaProducer(bootstrap_servers=BOOTSTRAP_SERVERS)
-    except Exception as e:
-        print(f"Connection failed: {e}. Is your Docker Kafka service currently running?")
-        return
+# def run_mock_producer():
+    # print(f"Initializing Mock Producer targeting {BOOTSTRAP_SERVERS}...")
+    # try:
+    #     # Note: We do NOT use a value_serializer because value is raw binary image data
+    #     producer = KafkaProducer(bootstrap_servers=BOOTSTRAP_SERVERS)
+    # except Exception as e:
+    #     print(f"Connection failed: {e}. Is your Docker Kafka service currently running?")
+        # return
 
     # Payload Variant A: Your exact Moon payload
-    dsoc_metadata = {
-        "obs_ID": "obs_001",
-        "target": "Moon", #idk??
-        "xmit_station": "Green Bank (100-m, GBT)",
-        "rcvr_station": "North Liberty (25-m, VLBA)",
-        "productType": "DDM",
-        "productID": "ddm_002",
-        "productSource": "DSOC",
-        "creationTime": "2026-06-04 15:05:20.103",
-        "eventTime": "2026-06-04 14:59:05.096"
-    }
+    # dsoc_metadata = {
+    #     "obs_ID": "obs_001",
+    #     "target": "Moon", #idk??
+    #     "xmit_station": "Green Bank (100-m, GBT)",
+    #     "rcvr_station": "North Liberty (25-m, VLBA)",
+    #     "productType": "DDM",
+    #     "productID": "ddm_002",
+    #     "productSource": "DSOC",
+    #     "creationTime": "2026-06-04 15:05:20.103",
+    #     "eventTime": "2026-06-04 14:59:05.096"
+    # }
 
     # Payload Variant B: Brand new Mars observation payload
-    dsoc_metadata_2 = {
-        "obs_ID": "obs_002",
-        "target": "Mars", #idk??
-        "xmit_station": "Los Alamos (25-m, VLBA)",
-        "rcvr_station": "Hancock (25-m, VLBA)",
-        "productType": "DDM",
-        "productID": "ddm_009",
-        "productSource": "DSOC",
-        "creationTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
-        "eventTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-    }
+    # dsoc_metadata_2 = {
+    #     "obs_ID": "obs_002",
+    #     "target": "Mars", #idk??
+    #     "xmit_station": "Los Alamos (25-m, VLBA)",
+    #     "rcvr_station": "Hancock (25-m, VLBA)",
+    #     "productType": "DDM",
+    #     "productID": "ddm_009",
+    #     "productSource": "DSOC",
+    #     "creationTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+    #     "eventTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    # }
 
     # Payload Variant C: Some GBT data
-    gbt_metadata = {
-        "obs_ID": "obs_003",
-        "target": "Jupiter", #idk??
-        "xmit_station": "Green Bank (100-m, GBT)",
-        "rcvr_station": "North Liberty (25-m, VLBA)",
-        "productType": "DDM",
-        "productID": "ddm_015",
-        "productSource": "GBT",
-        "creationTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
-        "eventTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-    }
+    # gbt_metadata = {
+    #     "obs_ID": "obs_003",
+    #     "target": "Jupiter", #idk??
+    #     "xmit_station": "Green Bank (100-m, GBT)",
+    #     "rcvr_station": "North Liberty (25-m, VLBA)",
+    #     "productType": "DDM",
+    #     "productID": "ddm_015",
+    #     "productSource": "GBT",
+    #     "creationTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+    #     "eventTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    # }
 
     # Payload Variant D: Some more GBT data
-    gbt_metadata_2 = {
-        "obs_ID": "obs_004",
-        "target": "Saturn", #idk??
-        "xmit_station": "Green Bank (100-m, GBT)",
-        "rcvr_station": "North Liberty (25-m, VLBA)",
-        "productType": "DDM",
-        "productID": "ddm_020",
-        "productSource": "GBT",
-        "creationTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
-        "eventTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-    }
+    # gbt_metadata_2 = {
+    #     "obs_ID": "obs_004",
+    #     "target": "Saturn", #idk??
+    #     "xmit_station": "Green Bank (100-m, GBT)",
+    #     "rcvr_station": "North Liberty (25-m, VLBA)",
+    #     "productType": "DDM",
+    #     "productID": "ddm_020",
+    #     "productSource": "GBT",
+    #     "creationTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+    #     "eventTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    # }
 
-    scenarios = [
-        {"meta": dsoc_metadata, "image_file": "molniya.png"},
-        {"meta": dsoc_metadata_2, "image_file": "mtex-ngVLA.png"},
-        {"meta": gbt_metadata, "image_file": "jupiter.png"},
-        {"meta": gbt_metadata_2, "image_file": "saturn.png"}
-    ]
+    # scenarios = [
+    #     {"meta": dsoc_metadata, "image_file": "molniya.png"},
+    #     {"meta": dsoc_metadata_2, "image_file": "mtex-ngVLA.png"},
+    #     {"meta": gbt_metadata, "image_file": "jupiter.png"},
+    #     {"meta": gbt_metadata_2, "image_file": "saturn.png"}
+    # ]
 
-    for index, run in enumerate(scenarios):
-        meta = run["meta"]
-        img_bytes = get_binary_image_data(run["image_file"])
+    # for index, run in enumerate(scenarios):
+    #     meta = run["meta"]
+    #     img_bytes = get_binary_image_data(run["image_file"])
 
-        # Format metadata to look like header bytes matching your consumer specifications
-        kafka_headers = [
-            ("DDM metadata", json.dumps(meta).encode('utf-8'))
-        ]
+    #     # Format metadata to look like header bytes matching your consumer specifications
+    #     kafka_headers = [
+    #         ("DDM metadata", json.dumps(meta).encode('utf-8'))
+    #     ]
 
-        print(f"\n[Sending Payload #{index+1}] Target: {meta['target']}...")
+    #     print(f"\n[Sending Payload #{index+1}] Target: {meta['target']}...")
         
-        # Fire raw bytes payload down Kafka channel
-        producer.send(
-            topic=TOPIC_NAME,
-            value=img_bytes,
-            headers=kafka_headers
-        )
-        producer.flush()
-        print(f"Successfully broadcasted {meta['obs_ID']} data packet to cluster.")
-        time.sleep(2) # Simulate delay, is this the frequency we want to send these payloads?
+    #     # Fire raw bytes payload down Kafka channel
+    #     producer.send(
+    #         topic=TOPIC_NAME,
+    #         value=img_bytes,
+    #         headers=kafka_headers
+    #     )
+    #     producer.flush()
+    #     print(f"Successfully broadcasted {meta['obs_ID']} data packet to cluster.")
+    #     time.sleep(2) # Simulate delay, is this the frequency we want to send these payloads?
 
-    producer.close()
-    print("\nTransmission simulation complete.")
+    # producer.close()
+    # print("\nTransmission simulation complete.")
 
-if __name__ == '__main__':
-    run_mock_producer()
+# if __name__ == '__main__':
+#     run_mock_producer()
 
 
 
