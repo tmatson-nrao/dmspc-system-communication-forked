@@ -1,3 +1,7 @@
+#libraries to get files from the outside directory
+import sys
+from pathlib import Path
+
 from django.db import models
 from ngRadar_Website.enums import Stations
 
@@ -37,4 +41,6 @@ class ObservatoryEvent(models.Model):
         return f"Obs: {self.obs_id} | {self.xmit_station_id} -> {self.rcvr_station_id}"
 
 
+    # what other tables may we need?
+    
 # what other tables may we need?
