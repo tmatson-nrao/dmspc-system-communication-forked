@@ -5,7 +5,20 @@ import csv
 import time
 from PIL import Image
 from confluent_kafka import Consumer
+import psycopg2
+from dotenv import load_dotenv
 
+load_dotenv()  # loads .env from current working dir
+
+database = os.environ["POSTGRES_DB"]
+user = os.environ["POSTGRES_USER"]
+password = os.environ["POSTGRES_PASSWORD"]
+host = os.environ["POSTGRES_URL"]
+port = os.environ["POSTGRES_PORT"]
+
+#Connecting to the team's render database (fill in password):
+conn = psycopg2.connect(database=database, user=user, password=password, host=host, port=port)
+cursor = conn.cursor()
 
 topic = ["GBT_data", "DSOC_data"]  #NOTE The topic which the messages will be received from, rename accordingly to whatever topic you are using
 '''
@@ -40,6 +53,77 @@ def read_config():
         config[parameter] = value.strip()
   return config
 
+def DB_columns(value):
+  #dissects the payload to get individual values, and publishes to the correct column in the database
+  #some values only exist for messages with images - these have if statements
+  obs_id = value['Object_ID']#done
+  target = value['Object']#done
+  if value['Type'] is not None:
+    product_type = value['Type']#done
+  else:
+    product_type = None
+  if value['Image_ID'] is not None:
+    product_id = value['Image_ID']#done
+  else:
+    product_id = None
+  station = value['Source']#done
+  creation_time = value['Timestamp']#done
+  event_time = "2026-06-25 17:00:00+00"
+  created_at = "2026-06-25 17:00:00+00"
+  xmit_station = 'GBT'
+  if value['Receiver'] is not None:
+    rcvr_station = value['Receiver']#done
+  else:
+    rcvr_station = None
+  if value['Image'] is not None:
+    image_file = value['Image']#done
+  else:
+    image_file = None
+  if value['Bytes'] is not None:
+    num_bytes = value['Bytes']#done
+  else:
+    num_bytes = None
+
+  return obs_id, target, product_type, product_id, station, creation_time, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes
+
+def publish_DB(obs_id, target, product_type, product_id, station, creation_time, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes, latency_ms):
+  #saves the DDM payload to the database, commits it, and closes the DB connection. 
+  #using placeholder values for the required column fields - will update with data from the actual message metadata
+  cursor.execute("""
+                 INSERT INTO \"ngRadar_Website_observatoryevent\" (
+                 obs_id, 
+                 target, 
+                 product_type, 
+                 product_id, 
+                 station, 
+                 creation_time, 
+                 event_time, 
+                 created_at, 
+                 xmit_station, 
+                 rcvr_station, 
+                 image_file, 
+                 num_bytes, 
+                 latency_ms) 
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                 """, (
+                   obs_id, 
+                   target, 
+                   product_type, 
+                   product_id, 
+                   station, 
+                   creation_time, 
+                   event_time, 
+                   created_at, 
+                   xmit_station, 
+                   rcvr_station, 
+                   image_file, 
+                   num_bytes, 
+                   latency_ms))
+  conn.commit()
+  conn.close()
+
+  return print("DDM payload saved to database successfully.")
+
 
 def consume(topic, config):
   #creates a new consumer instance
@@ -61,6 +145,9 @@ def consume(topic, config):
 
         key = msg.key().decode("utf-8")
         value = json.loads(msg.value().decode("utf-8"))
+        obs_id, target, product_type, product_id, station, creation_time, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes = DB_columns(value)
+
+        publish_DB(obs_id, target, product_type, product_id, station, creation_time, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes, latency_ms=None)
 
         if value['Source'] == "GBT":
           print(f"Received message from {value['Source']} for Object {value['Object']} (Object ID: {value['Object_ID']}). Observing with waveform {value['Transmitted_WF']}.")
@@ -74,10 +161,16 @@ def consume(topic, config):
                 unique = hashlib.sha256(str(value['Image']).encode('utf-8')).hexdigest()
                 filename = f"{value['Type']}-{value['Image_ID']}-{value['Timestamp']}-{unique:.15}.png"
                 print(f"Image saved as {filename}")
+                #save image first
+                #img = Image.open(filename)
+                #img.show()
             elif value['Type'] == "Spec":
                 unique = hashlib.sha256(str(value['Image']).encode('utf-8')).hexdigest()
                 filename = f"{value['Type']}-{value['Image_ID']}-{value['Timestamp']}-{unique:.15}.png"
                 print(f"Image saved as {filename}")
+                #save image first
+                #img = Image.open(filename)
+                #img.show()
             else:
                 print("Image is of an unknown type. Expecting 'Spec' or 'DDM'.")
           else:
@@ -114,3 +207,4 @@ def main():
 
 
 main()
+
