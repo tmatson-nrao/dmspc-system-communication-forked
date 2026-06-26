@@ -231,9 +231,38 @@ def consume(topic, config):
 
         print(f"Saved DDM for obs_id '{meta.get('obs_id')}' as {filename} ({len(value)} bytes). Image created at {meta.get('created_timestamp')} by {meta.get('source')}. Latency: {latency_ms:.2f} ms")
 
-        #saves the data to the database, commits it, and closes the DB connection
-        #I am still working on filling in the correct column names/values here....
-        cursor.execute("INSERT INTO ngRadar_Website_observatoryevent (DDM_id, image_data) VALUES (%s, %s)", (meta.get('obs_id'), psycopg2.Binary(value)))
+        #saves the DDM payload to the database, commits it, and closes the DB connection. 
+        #using placeholder values for the required column fields - will update with data from the actual message metadata
+        cursor.execute("""
+                       INSERT INTO \"ngRadar_Website_observatoryevent\" (
+                       obs_id, 
+                       target, 
+                       product_type, 
+                       product_id, 
+                       station, 
+                       creation_time, 
+                       event_time, 
+                       created_at, 
+                       xmit_station, 
+                       rcvr_station, 
+                       image_file, 
+                       num_bytes, 
+                       latency_ms) 
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                       """, (
+                         filename, 
+                         'target', 
+                         'product_type', 
+                         'product_id', 
+                         25, 
+                         "2026-06-25 17:00:00+00", 
+                         "2026-06-25 17:00:00+00", 
+                         "2026-06-25 17:00:00+00", 
+                         'xmit_station', 
+                         'rcvr_station', 
+                         filename, 
+                         len(value), 
+                         latency_ms))
         conn.commit()
         conn.close()
 
