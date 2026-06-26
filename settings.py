@@ -51,15 +51,20 @@ MIDDLEWARE = [
     'login_required.middleware.LoginRequiredMiddleware',
 ]
 
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher', 
+]
+
 ROOT_URLCONF = 'urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'], 
+        'DIRS': [os.path.join(BASE_DIR, 'templates')], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -67,6 +72,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'wsgi.application'
 
@@ -121,23 +127,27 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
-STATIC_URL = 'static/'
 
-LOGIN_REDIRECT_URL = '/ngRadar_Website/'
-LOGIN_URL = '/login/'
+# Authentication
+# https://docs.djangoproject.com/en/6.0/topics/auth/default/
 
+LOGIN_URL = 'login'            # name of the login route in urls.py
+LOGIN_REDIRECT_URL = 'dashboard_home'    # after login -> /ngRadar_Website/dashboard.html
+LOGOUT_REDIRECT_URL = 'login'  # after logout -> back to the login page
+
+# Let everyone see the login page; LoginRequiredMiddleware guards every other page.
 LOGIN_REQUIRED_IGNORE_PATHS = [
-    r'^login/$',
+    r'^/login/$',
 ]
 
 # ==============================================================================
 # LOCAL WORKSTATION OBJECT STORAGE (ACTIVE FOR PROTOTYPING)
 # For prototype purposes only, to be replaved with cloud object storage later
 # ==============================================================================
-# not sure if the path is correct on these, have not tested
-# URL prefix for user-uploaded media files
 MEDIA_URL = '/media/'
-
-# Absolute path to the directory where media files are stored on disk
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
