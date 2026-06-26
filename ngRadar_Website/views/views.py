@@ -6,6 +6,8 @@ from pathlib import Path
 import json
 from django.http import StreamingHttpResponse
 
+from django.utils import timezone #use django time library, which uses UTC time by default
+
 from django.shortcuts import render
 from ngRadar_Website.models.models import ObservatoryEvent
 from enum import Stations # if needed? if not, pls delete
@@ -14,6 +16,8 @@ from enum import Stations # if needed? if not, pls delete
 outside_dir = str(Path(__file__).resolve().parents[2])
 sys.path.append(outside_dir)
 from mock_producer import run_mock_producer
+
+
 
 def get_dashboard_context():
     """Helper function to keep data uniform across view updates"""
