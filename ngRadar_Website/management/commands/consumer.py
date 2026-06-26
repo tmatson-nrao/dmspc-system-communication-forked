@@ -21,8 +21,8 @@ config = {
     "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
     "fetch.max.bytes": 8388608,
     "session.timeout.ms": 45000,
-    "client.id": "consumer-test",
-    "group.id": "consumer-group-test",
+    "client.id": "universal-consumer",
+    "group.id": "consumer-group",
     "auto.offset.reset": "earliest",
   }
 
