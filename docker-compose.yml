@@ -1,21 +1,60 @@
 services:
   
-  kafka:
-    image: apache/kafka:3.7.0
-    container_name: local_kafka
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok
+    # Sign up for an ngrok account at https://dashboard.ngrok.com/signup
+    # Get your auth-token from https://dashboard.ngrok.com/get-started/your-authtoken
+    # and either put it directly in the file here, or write it to a .env file in 
+    # the same folder as this Docker Compose file in the form
+    # NGROK_AUTH_TOKEN=your_token_value
+    command: tcp broker:9092 --log stdout --authtoken $NGROK_AUTH_TOKEN
     ports:
-      - "9092:9092"   # Traffic inside the internal Docker Network
-      - "9094:9094"   # Traffic from outside via ngrok
+      - 4040:4040 # Web dashboard for ngrok
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.1
+    container_name: zookeeper
     environment:
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: 'broker,controller'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:9093'
-      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,EXTERNAL://0.0.0.0:9094'
-      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
-      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,EXTERNAL://0.tcp.ngrok.io:13911' #on work station, after authenticating ngrok token, ngrok tcp 9094 to get ngrok host:port to paste into EXTERNAL
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT'
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  broker:
+    image: confluentinc/cp-kafka:7.5.1
+    container_name: broker
+    depends_on:
+      - zookeeper
+      - ngrok
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: DOCKER://broker:29092, NGROK://broker:9092
+      KAFKA_ADVERTISED_LISTENERS: DOCKER://broker:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: DOCKER:PLAINTEXT,NGROK:PLAINTEXT
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    entrypoint: 
+      - /bin/sh 
+      - -c 
+      - |
+        echo "Waiting for ngrok tunnel to be created"
+        while : ; do
+          curl_status=$$(curl -s -o /dev/null -w %{http_code} http://ngrok:4040/api/tunnels/command_line)
+          echo -e $$(date) "\tTunnels API HTTP state: " $$curl_status " (waiting for 200)"
+          if [ $$curl_status -eq 200 ] ; then
+            break
+          fi
+          sleep 5 
+        done
+        echo "ngrok tunnel is up"
+        NGROK_LISTENER=$(curl -s  http://ngrok:4040/api/tunnels/command_line | grep -Po '"public_url":.*?[^\\]",' | cut -d':' -f2- | tr -d ',"' | sed 's/tcp:\/\//NGROK:\/\//g')
+        echo $$NGROK_LISTENER
+        export KAFKA_ADVERTISED_LISTENERS="$$KAFKA_ADVERTISED_LISTENERS, $$NGROK_LISTENER"
+        echo "KAFKA_ADVERTISED_LISTENERS is set to " $$KAFKA_ADVERTISED_LISTENERS
+        /etc/confluent/docker/run
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -25,29 +64,30 @@ services:
     environment:
       DYNAMIC_CONFIG_ENABLED: 'true'
       KAFKA_CLUSTERS_0_NAME: 'local-cluster'
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: 'kafka:9092'
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: 'broker:9092'
     depends_on:
-      - kafka
+      - broker
 
-  local-postgres:
-    image: postgres:16-alpine
-    container_name: local_postgres
-    ports:
-      - "5432:5432" # Exposed to PC for DBeaver (Database Management Tool similar to pgAdmin)
-    environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mylocaldb
+  # local-postgres:
+  #   image: postgres:16-alpine
+  #   container_name: local_postgres
+  #   ports:
+  #     - "$POSTGRES_PORT:$POSTGRES_PORT" # Exposed to PC for DBeaver (Database Management Tool similar to pgAdmin)
+  #   environment:
+  #     POSTGRES_USER: $POSTGRES_USER
+  #     POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+  #     POSTGRES_DB: $POSTGRES_DB
 
-  django-consumer:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: django_consumer
-    command: python manage.py run_consumer
-    environment:
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - DATABASE_URL=postgres://myuser:mypassword@local-postgres:5432/mylocaldb # What should this be?
-    depends_on:
-      - kafka
-      - local-postgres
+  # django-consumer:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: django_consumer
+  #   command: python manage.py run_consumer
+  #   environment:
+  #     - KAFKA_BOOTSTRAP_SERVERS=broker:9092
+  #     - DATABASE_URL= $POSTGRES_URL # What should this be?
+  #   depends_on:
+  #     - broker
+  #     - local-postgres
+

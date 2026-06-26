@@ -7,7 +7,7 @@ from PIL import Image
 from confluent_kafka import Consumer
 
 
-topic = "GBT_data"  #NOTE The topic which the messages will be received from, rename accordingly to whatever topic you are using
+topic = ["GBT_data", "DSOC_data"]  #NOTE The topic which the messages will be received from, rename accordingly to whatever topic you are using
 '''
 stats_file = "ddm_stats.csv"
 
@@ -46,7 +46,7 @@ def consume(topic, config):
   consumer = Consumer(config)
 
   #subscribes to the specified topic
-  consumer.subscribe([topic])
+  consumer.subscribe(topic)
 
   try:
     while True:
@@ -70,21 +70,24 @@ def consume(topic, config):
           print(f"Received message from {value['Source']} for Object {value['Object']} (Object ID: {value['Object_ID']}). Checking if quick-look product is ready...")
           if value['Image']:
             print(f"{value['Type']} image ready (Image ID: {value['Image_ID']}). Produced by {value['Receiver']}") # add more robust rcvr identification using enums later
-            if {value['Type']} == "DDM":
-                unique = hashlib.sha256(value).hexdigest()
+            if value['Type'] == "DDM":
+                unique = hashlib.sha256(str(value['Image']).encode('utf-8')).hexdigest()
                 filename = f"{value['Type']}-{value['Image_ID']}-{value['Timestamp']}-{unique:.15}.png"
-            elif {value['Type']} == "Spec":
-                unique = hashlib.sha256(value).hexdigest()
+                print(f"Image saved as {filename}")
+            elif value['Type'] == "Spec":
+                unique = hashlib.sha256(str(value['Image']).encode('utf-8')).hexdigest()
                 filename = f"{value['Type']}-{value['Image_ID']}-{value['Timestamp']}-{unique:.15}.png"
+                print(f"Image saved as {filename}")
             else:
-              print("Image is of an unknown type. Expecting 'Spec' or 'DDM'.")
+                print("Image is of an unknown type. Expecting 'Spec' or 'DDM'.")
           else:
             print(f"Quick-look product not available yet for Object {value['Object']} (Object ID: {value['Object_ID']}).")
         else:
           print("Message received from a site other than GBT or VLBA, or message is empty.")
 
+      #NOTE: NOT ACTUALLY SAVING IMAGES YET
+      #NOTE: ADD LATENCY CALCS
       
-
         #latency_ms = (time.time() - send_time)*1000 #calculate latency in ms
 
     
