@@ -14,7 +14,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 
-BASE_DIR = Path(__file__).resolve().parent
+# BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
@@ -22,8 +23,10 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
 # Allow local Docker containers AND Render's domain depending on environment
 # Have not tested this yet
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,django-consumer').split(',')
-
+ALLOWED_HOSTS = [
+    host.strip() 
+    for host in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+]
 
 # Application definition
 
@@ -42,6 +45,7 @@ MIDDLEWARE = [
     # the order of these is VERY important. 
     # if making changes, ensure the order is correct
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -128,8 +132,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    BASE_DIR / 'ngRadar_Website' / 'static',
 ]
 
 
@@ -150,4 +155,4 @@ LOGIN_REQUIRED_IGNORE_PATHS = [
 # For prototype purposes only, to be replaved with cloud object storage later
 # ==============================================================================
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'

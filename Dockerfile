@@ -16,14 +16,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy and install Python dependencies
-COPY requirements.txt /app/
+COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# FIXED: Copies into your active workdir root (/app/) to match execution paths
 COPY . /app/
+RUN python manage.py collectstatic --noinput
 
 # Expose port 8000 for web delivery configurations
 EXPOSE 8000
 
-CMD ["gunicorn", "ngRadar_Website.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "wsgi:application", "--bind", "0.0.0.0:8000"]
