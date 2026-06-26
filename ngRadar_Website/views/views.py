@@ -36,6 +36,8 @@ def login_view(request):
 outside_dir = str(Path(__file__).resolve().parents[2])
 sys.path.append(outside_dir)
 
+
+
 def get_dashboard_context():
     """Helper function to keep data uniform across view updates"""
     latest_events = ObservatoryEvent.objects.all().order_by('-created_at')[:20]
