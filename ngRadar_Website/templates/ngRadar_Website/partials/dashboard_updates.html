@@ -23,23 +23,23 @@
                         <td><strong>{{ event.target }}</strong></td>
                         <td>
                             {% if event.xmit_station %}
-                                <span class="text-success fw-bold" title="{{ event.xmit_station }}">{{ event.xmit_code }}</span>
+                                <span class="text-success fw-bold" title="{{ event.xmit_station }}">{{ event.xmit_station }}</span>
                             {% else %}
                                 <span class="text-muted">Unknown</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if event.rcvr_station %}
-                                <span class="text-primary fw-bold" title="{{ event.rcvr_station }}">{{ event.rcvr_code }}</span>
+                                <span class="text-primary fw-bold" title="{{ event.rcvr_station }}">{{ event.rcvr_station }}</span>
                             {% else %}
                                 <span class="text-muted">Unknown</span>
                             {% endif %}
                         </td>
                         <td>
-                            {% if event.image %}
+                            {% if event.image_file %}
                                 <!-- Clicking this link opens the original image in a new browser tab -->
-                                <a href="{{ event.image.url }}" target="_blank">
-                                    <img src="{{ event.image.url }}" alt="View Event Image" class="img-thumbnail" style="max-width: 150px;">
+                                <a href="{{ event.image_file.url }}" target="_blank">
+                                    <img src="{{ event.image_file.url }}" alt="View Event Image" class="img-thumbnail" style="max-width: 150px;">
                                 </a>
                             {% else %}
                                 <span class="text-muted">No image uploaded</span>
