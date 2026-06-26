@@ -7,6 +7,7 @@ from PIL import Image
 from confluent_kafka import Consumer
 import psycopg2
 from dotenv import load_dotenv
+import ast
 
 load_dotenv()  # loads .env from current working dir
 
@@ -15,6 +16,16 @@ user = os.environ["POSTGRES_USER"]
 password = os.environ["POSTGRES_PASSWORD"]
 host = os.environ["POSTGRES_URL"]
 port = os.environ["POSTGRES_PORT"]
+
+config = {
+    "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
+    "fetch.max.bytes": 8388608,
+    "session.timeout.ms": 45000,
+    "client.id": "consumer-test",
+    "group.id": "consumer-group-test",
+    "auto.offset.reset": "earliest",
+  }
+
 
 #Connecting to the team's render database (fill in password):
 conn = psycopg2.connect(database=database, user=user, password=password, host=host, port=port)
@@ -41,18 +52,6 @@ def append_stats(num_bytes, latency_ms,filename=None):
     })
 '''
 
-def read_config():
-  #reads the client (consumer) configuration from consumer.properties
-  #and returns it as a key-value map
-  config = {}
-  with open("consumer.properties") as fh:
-    for line in fh:
-      line = line.strip()
-      if len(line) != 0 and line[0] != "#":
-        parameter, value = line.strip().split('=', 1)
-        config[parameter] = value.strip()
-  return config
-
 def DB_columns(value):
   #dissects the payload to get individual values, and publishes to the correct column in the database
   #some values only exist for messages with images - these have if statements
@@ -66,7 +65,10 @@ def DB_columns(value):
     product_id = value['Image_ID']#done
   else:
     product_id = None
-  station = value['Source']#done
+  if value['Source'] is not None:
+    station = value['Source']#done
+  else:
+    station = int(NULL) # doesn't work. Input zeroes in mocked observation for now.
   creation_time = value['Timestamp']#done
   event_time = "2026-06-25 17:00:00+00"
   created_at = "2026-06-25 17:00:00+00"
@@ -76,7 +78,8 @@ def DB_columns(value):
   else:
     rcvr_station = None
   if value['Image'] is not None:
-    image_file = value['Image']#done
+    image_file = ast.literal_eval(value['Image'])
+    #image_file =  value['Image']#done
   else:
     image_file = None
   if value['Bytes'] is not None:
@@ -120,7 +123,7 @@ def publish_DB(obs_id, target, product_type, product_id, station, creation_time,
                    num_bytes, 
                    latency_ms))
   conn.commit()
-  conn.close()
+  #conn.close()
 
   return print("DDM payload saved to database successfully.")
 
@@ -201,8 +204,6 @@ def consume(topic, config):
 
 
 def main():
-  config = read_config()
-  print(config)
   consume(topic, config)
 
 
