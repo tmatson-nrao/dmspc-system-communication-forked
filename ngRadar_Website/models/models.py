@@ -1,7 +1,6 @@
 #libraries to get files from the outside directory
 import sys
 from pathlib import Path
-
 from django.db import models
 from ngRadar_Website.enums import Stations
 
@@ -9,17 +8,19 @@ from ngRadar_Website.enums import Stations
 
 class ObservatoryEvent(models.Model):
     # Mapping to your payload variables
-    obs_id = models.CharField(max_length=100)
+    object_id = models.CharField(max_length=100)
     target = models.CharField(max_length=100)
-    product_type = models.CharField(max_length=50)
-    product_id = models.CharField(max_length=100, unique=True)
+    tx_waveform = models.CharField(max_length=100, blank=True, null=True)
+    rec_waveform = models.CharField(max_length=100, blank=True, null=True)
+
+    product_type = models.CharField(max_length=50, blank=True, null=True)
+    product_id = models.CharField(max_length=100, unique=True, blank=True, null=True)
     station = models.PositiveSmallIntegerField(
             choices=Stations.choices,
-            default=Stations.GBT
+            default=Stations.GBT, blank=True, null=True
         )    
-    creation_time = models.DateTimeField()
     event_time = models.DateTimeField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField() 
 
     # This allows us to track the transmitter and receiver stations for each event
     xmit_station = models.CharField(
@@ -32,10 +33,11 @@ class ObservatoryEvent(models.Model):
         choices=Stations.choices, 
         blank=True, null=True
     )
-
+    
     image_file = models.ImageField(upload_to='ddm_payloads/', blank=True, null=True)
-    num_bytes = models.IntegerField(default=0)
+    num_bytes = models.IntegerField(blank=True, null=True)
     latency_ms = models.FloatField(default=0.0)
+
 
     def __str__(self):
         return f"Obs: {self.obs_id} | {self.xmit_station_id} -> {self.rcvr_station_id}"
