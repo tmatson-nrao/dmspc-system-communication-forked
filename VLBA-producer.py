@@ -2,25 +2,17 @@ import json
 from datetime import datetime
 import time
 import csv
+import os
 from confluent_kafka import Producer
-
+from dotenv import load_dotenv
+load_dotenv()  # loads .env from current working dir
 
 topic = "DSOC_data"  #NOTE The topic to which the messages will be sent, rename accordingly to whatever topic you want to send the DDM payloads to.
-
-run = True #set to True when you're ready to produce to kafka.
-
-def read_config():
-  #reads the client (producer) configuration from producer.properties
-  #and returns it as a key-value map
-  config = {}
-  with open("producer.properties") as fh:
-    for line in fh:
-      line = line.strip()
-      if len(line) != 0 and line[0] != "#":
-        parameter, value = line.strip().split('=', 1)
-        config[parameter] = value.strip()
-  return config
-
+config = {
+    "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
+    "message.max.bytes": 8388608,
+    "client.id": "VLBA-producer"
+  }
 
 def produce(topic, config, key, value):
   #creates a new producer instance
@@ -33,8 +25,9 @@ def produce(topic, config, key, value):
   #send any outstanding or buffered messages to the Kafka broker
   producer.flush()
 
-
-
+def main():
+    time.sleep(10)
+    produce(topic, config, key, value)
 
 with open("mock_assets/DSOC-data.csv", newline="") as f:
     reader = csv.DictReader(f, delimiter=" ")  #uses header row as keys
@@ -42,6 +35,7 @@ with open("mock_assets/DSOC-data.csv", newline="") as f:
         if row["Image"]:
             with open(f"mock_assets/{row["Image"]}", 'rb') as file :
                 image = file.read()
+                print(f"Image {row['Image']} has {len(image)} bytes.")
         else: None
     
         #build JSON payload from the row
@@ -49,7 +43,6 @@ with open("mock_assets/DSOC-data.csv", newline="") as f:
             "Object": row["Object"],
             "Object_ID": row["Object_ID"],
             "Source": row["Source"],
-            "Receiver": row["Receiver"],
             "Timestamp": f"{datetime.now()}",
             "Type": row["Type"],
             "Bytes": f"{len(image)}" if row["Image"] else None,
@@ -61,8 +54,4 @@ with open("mock_assets/DSOC-data.csv", newline="") as f:
         key = str(payload["Object_ID"]) if payload.get("Object_ID") else None
         value = json.dumps(payload).encode("utf-8")
 
-        if run:
-            config = read_config()
-            produce(topic, config, key, value)
-
-            time.sleep(10)
+        main()

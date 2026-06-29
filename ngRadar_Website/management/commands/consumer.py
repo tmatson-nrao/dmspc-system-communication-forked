@@ -3,6 +3,7 @@ import json
 import os
 import csv
 import time
+from datetime import datetime
 from PIL import Image
 from confluent_kafka import Consumer
 import psycopg2
@@ -21,8 +22,8 @@ config = {
     "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
     "fetch.max.bytes": 8388608,
     "session.timeout.ms": 45000,
-    "client.id": "consumer-test",
-    "group.id": "consumer-group-test",
+    "client.id": "universal-consumer",
+    "group.id": "consumer-group",
     "auto.offset.reset": "earliest",
   }
 
@@ -32,96 +33,70 @@ conn = psycopg2.connect(database=database, user=user, password=password, host=ho
 cursor = conn.cursor()
 
 topic = ["GBT_data", "DSOC_data"]  #NOTE The topic which the messages will be received from, rename accordingly to whatever topic you are using
-'''
-stats_file = "ddm_stats.csv"
 
-
-def append_stats(num_bytes, latency_ms,filename=None):
-  """Append DDM payload statistics for later analysis."""
-  
-  fieldnames = ["filename", "num_bytes", "latency_ms"]
-  file_exists = os.path.exists(stats_file)
-  with open(stats_file, "a", newline="") as fh:
-    writer = csv.DictWriter(fh, fieldnames=fieldnames)
-    if not file_exists:
-      writer.writeheader()
-    writer.writerow({
-      "filename": filename or "",
-      "num_bytes": num_bytes,
-      "latency_ms": f"{latency_ms:.2f}"
-    })
-'''
 
 def DB_columns(value):
   #dissects the payload to get individual values, and publishes to the correct column in the database
   #some values only exist for messages with images - these have if statements
-  obs_id = value['Object_ID']#done
+
+  object_id = value['Object_ID']#done
   target = value['Object']#done
-  if value['Type'] is not None:
-    product_type = value['Type']#done
+
+  if value['Source'] == "GBT":
+    xmit_station = value['Source']
+    #latency_ms = 
+    tx_waveform = value['Tx_WF']
+    rec_waveform = value['Rec_WF']
+    event_time = value['Timestamp']
+    return object_id, target, event_time, xmit_station, rec_waveform, tx_waveform
   else:
-    product_type = None
-  if value['Image_ID'] is not None:
-    product_id = value['Image_ID']#done
-  else:
-    product_id = None
-  if value['Source'] is not None:
-    station = value['Source']#done
-  else:
-    station = int(NULL) # doesn't work. Input zeroes in mocked observation for now.
-  creation_time = value['Timestamp']#done
-  event_time = "2026-06-25 17:00:00+00"
-  created_at = "2026-06-25 17:00:00+00"
-  xmit_station = 'GBT'
-  if value['Receiver'] is not None:
-    rcvr_station = value['Receiver']#done
-  else:
-    rcvr_station = None
-  if value['Image'] is not None:
+    xmit_station = "GBT"
+    rcvr_station = value['Source']
+    product_type = value['Type']
+    product_id = value['Image_ID']
+    event_time = value['Timestamp']
+    created_at = datetime.now()
     image_file = ast.literal_eval(value['Image'])
-    #image_file =  value['Image']#done
-  else:
-    image_file = None
-  if value['Bytes'] is not None:
-    num_bytes = value['Bytes']#done
-  else:
-    num_bytes = None
+    num_bytes = value['Bytes']
+    return object_id, target, product_type, product_id, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes
 
-  return obs_id, target, product_type, product_id, station, creation_time, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes
+  #return object_id, target, product_type, product_id, station, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes, rec_waveform, tx_waveform
 
-def publish_DB(obs_id, target, product_type, product_id, station, creation_time, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes, latency_ms):
+def publish_DB(object_id, target, product_type, product_id, station, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes, latency_ms, rec_waveform, tx_waveform):
   #saves the DDM payload to the database, commits it, and closes the DB connection. 
   #using placeholder values for the required column fields - will update with data from the actual message metadata
   cursor.execute("""
                  INSERT INTO \"ngRadar_Website_observatoryevent\" (
-                 obs_id, 
+                 object_id, 
                  target, 
                  product_type, 
                  product_id, 
                  station, 
-                 creation_time, 
                  event_time, 
                  created_at, 
                  xmit_station, 
                  rcvr_station, 
                  image_file, 
                  num_bytes, 
-                 latency_ms) 
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                 latency_ms,
+                 rec_waveform, 
+                 tx_waveform)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                  """, (
-                   obs_id, 
+                   object_id, 
                    target, 
                    product_type, 
                    product_id, 
                    station, 
-                   creation_time, 
                    event_time, 
                    created_at, 
                    xmit_station, 
                    rcvr_station, 
                    image_file, 
                    num_bytes, 
-                   latency_ms))
+                   latency_ms,
+                   rec_waveform, 
+                   tx_waveform))
   conn.commit()
   #conn.close()
 
@@ -148,53 +123,42 @@ def consume(topic, config):
 
         key = msg.key().decode("utf-8")
         value = json.loads(msg.value().decode("utf-8"))
-        obs_id, target, product_type, product_id, station, creation_time, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes = DB_columns(value)
-
-        publish_DB(obs_id, target, product_type, product_id, station, creation_time, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes, latency_ms=None)
+        #DB_columns(value)
 
         if value['Source'] == "GBT":
-          print(f"Received message from {value['Source']} for Object {value['Object']} (Object ID: {value['Object_ID']}). Observing with waveform {value['Transmitted_WF']}.")
-
-
-        elif value['Source'] == "DSOC":
-          print(f"Received message from {value['Source']} for Object {value['Object']} (Object ID: {value['Object_ID']}). Checking if quick-look product is ready...")
-          if value['Image']:
-            print(f"{value['Type']} image ready (Image ID: {value['Image_ID']}). Produced by {value['Receiver']}") # add more robust rcvr identification using enums later
-            if value['Type'] == "DDM":
-                unique = hashlib.sha256(str(value['Image']).encode('utf-8')).hexdigest()
-                filename = f"{value['Type']}-{value['Image_ID']}-{value['Timestamp']}-{unique:.15}.png"
-                print(f"Image saved as {filename}")
-                #save image first
-                #img = Image.open(filename)
-                #img.show()
-            elif value['Type'] == "Spec":
-                unique = hashlib.sha256(str(value['Image']).encode('utf-8')).hexdigest()
-                filename = f"{value['Type']}-{value['Image_ID']}-{value['Timestamp']}-{unique:.15}.png"
-                print(f"Image saved as {filename}")
-                #save image first
-                #img = Image.open(filename)
-                #img.show()
-            else:
-                print("Image is of an unknown type. Expecting 'Spec' or 'DDM'.")
-          else:
-            print(f"Quick-look product not available yet for Object {value['Object']} (Object ID: {value['Object_ID']}).")
+          object_id, target, event_time, xmit_station, rec_waveform, tx_waveform = DB_columns(value)
+          publish_DB(object_id, target, product_type=None, product_id=None, station=None, event_time=event_time, created_at=None, xmit_station=xmit_station, rcvr_station=None, image_file=None, num_bytes=None, latency_ms=None, rec_waveform=rec_waveform, tx_waveform=tx_waveform)
         else:
-          print("Message received from a site other than GBT or VLBA, or message is empty.")
+          object_id, target, product_type, product_id, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes = DB_columns(value)
+          publish_DB(object_id, target, product_type, product_id, station=None, event_time=event_time, created_at=created_at, xmit_station=xmit_station, rcvr_station=rcvr_station, image_file=image_file, num_bytes=num_bytes, latency_ms=None, rec_waveform=None, tx_waveform=None)
+
+        if value['Source'] == "GBT":
+          print(f"Received message from {value['Source']} for object {value['Object']} (Object ID: {value['Object_ID']}).")
+          if value['Tx_WF'] != "Tx_OFF":
+             print(f"Observing with waveform {value['Tx_WF']}.")
+          else:
+             print(f"Transmitter is currently OFF.")
+
+        else:
+          print(f"Received message from DSOC {(value['Source'])} for object {value['Object']} (Object ID: {value['Object_ID']}). Checking if quick-look product is ready...")
+          if value['Type'] == "Spec":
+            print(f"CW Spectrum plot is ready (Image ID: {value['Image_ID']}). Produced by {value['Source']}") # add more robust rcvr identification using enums later
+            unique = hashlib.sha256(str(value['Image']).encode('utf-8')).hexdigest()
+            filename = f"{value['Type']}-{value['Image_ID']}-{value['Timestamp']}-{unique:.15}.png"
+            print(f"Image saved as {filename}")
+          elif value['Type'] == "DDM":
+            print(f"DDM is ready (Image ID: {value['Image_ID']}). Produced by {value['Source']}") # add more robust rcvr identification using enums later
+            unique = hashlib.sha256(str(value['Image']).encode('utf-8')).hexdigest()
+            filename = f"{value['Type']}-{value['Image_ID']}-{value['Timestamp']}-{unique:.15}.png"
+            print(f"Image saved as {filename}")
+                #save image first
+                #img = Image.open(filename)
+                #img.show()
+          else:
+            print("Image is of an unknown type. Expecting 'Spec' or 'DDM'.")
 
       #NOTE: NOT ACTUALLY SAVING IMAGES YET
       #NOTE: ADD LATENCY CALCS
-      
-        #latency_ms = (time.time() - send_time)*1000 #calculate latency in ms
-
-    
-        #append_stats(
-          #num_bytes=len(value),
-          #latency_ms=latency_ms,
-          #filename=filename)
-
-        #open and display the consumed image
-        #img = Image.open(filename)
-        #img.show()
 
   except KeyboardInterrupt: 
     pass
