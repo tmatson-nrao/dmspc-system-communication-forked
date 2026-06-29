@@ -40,7 +40,7 @@ sys.path.append(outside_dir)
 
 def get_dashboard_context():
     """Helper function to keep data uniform across view updates"""
-    latest_events = ObservatoryEvent.objects.all().order_by('-created_at')[:20]
+    latest_events = ObservatoryEvent.objects.all().order_by('-event_time')[:20]
     
     # Calculate the average latency of the last 20 records in Postgres
     avg_latency = latest_events.aggregate(Avg('latency_ms'))['latency_ms__avg'] or 0.0
