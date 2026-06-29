@@ -48,6 +48,7 @@ def DB_columns(value):
     tx_waveform = value['Tx_WF']
     rec_waveform = value['Rec_WF']
     event_time = value['Timestamp']
+    return object_id, target, event_time, xmit_station, rec_waveform, tx_waveform
   else:
     xmit_station = "GBT"
     rcvr_station = value['Source']
@@ -57,9 +58,9 @@ def DB_columns(value):
     created_at = datetime.now()
     image_file = ast.literal_eval(value['Image'])
     num_bytes = value['Bytes']
-  
+    return object_id, target, product_type, product_id, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes
 
-  return object_id, target, product_type, product_id, station, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes, rec_waveform, tx_waveform
+  #return object_id, target, product_type, product_id, station, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes, rec_waveform, tx_waveform
 
 def publish_DB(object_id, target, product_type, product_id, station, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes, latency_ms, rec_waveform, tx_waveform):
   #saves the DDM payload to the database, commits it, and closes the DB connection. 
@@ -77,9 +78,9 @@ def publish_DB(object_id, target, product_type, product_id, station, event_time,
                  rcvr_station, 
                  image_file, 
                  num_bytes, 
-                 latency_ms),
+                 latency_ms,
                  rec_waveform, 
-                 tx_waveform
+                 tx_waveform)
                  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                  """, (
                    object_id, 
@@ -122,26 +123,31 @@ def consume(topic, config):
 
         key = msg.key().decode("utf-8")
         value = json.loads(msg.value().decode("utf-8"))
-        DB_columns(value)
+        #DB_columns(value)
 
-        publish_DB(latency_ms=None)
+        if value['Source'] == "GBT":
+          object_id, target, event_time, xmit_station, rec_waveform, tx_waveform = DB_columns(value)
+          publish_DB(object_id, target, product_type=None, product_id=None, station=None, event_time=event_time, created_at=None, xmit_station=xmit_station, rcvr_station=None, image_file=None, num_bytes=None, latency_ms=None, rec_waveform=rec_waveform, tx_waveform=tx_waveform)
+        else:
+          object_id, target, product_type, product_id, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes = DB_columns(value)
+          publish_DB(object_id, target, product_type, product_id, station=None, event_time=event_time, created_at=created_at, xmit_station=xmit_station, rcvr_station=rcvr_station, image_file=image_file, num_bytes=num_bytes, latency_ms=None, rec_waveform=None, tx_waveform=None)
 
         if value['Source'] == "GBT":
           print(f"Received message from {value['Source']} for object {value['Object']} (Object ID: {value['Object_ID']}).")
           if value['Tx_WF'] != "Tx_OFF":
-             print(f"Observing with waveform {value['Transmitted_WF']}.")
+             print(f"Observing with waveform {value['Tx_WF']}.")
           else:
              print(f"Transmitter is currently OFF.")
 
         else:
-          print(f"Received message from {value['Source']} for object {value['Object']} (Object ID: {value['Object_ID']}). Checking if quick-look product is ready...")
+          print(f"Received message from DSOC {(value['Source'])} for object {value['Object']} (Object ID: {value['Object_ID']}). Checking if quick-look product is ready...")
           if value['Type'] == "Spec":
-            print(f"CW Spectrum plot is ready (Image ID: {value['Image_ID']}). Produced by {value['Receiver']}") # add more robust rcvr identification using enums later
+            print(f"CW Spectrum plot is ready (Image ID: {value['Image_ID']}). Produced by {value['Source']}") # add more robust rcvr identification using enums later
             unique = hashlib.sha256(str(value['Image']).encode('utf-8')).hexdigest()
             filename = f"{value['Type']}-{value['Image_ID']}-{value['Timestamp']}-{unique:.15}.png"
             print(f"Image saved as {filename}")
           elif value['Type'] == "DDM":
-            print(f"DDM is ready (Image ID: {value['Image_ID']}). Produced by {value['Receiver']}") # add more robust rcvr identification using enums later
+            print(f"DDM is ready (Image ID: {value['Image_ID']}). Produced by {value['Source']}") # add more robust rcvr identification using enums later
             unique = hashlib.sha256(str(value['Image']).encode('utf-8')).hexdigest()
             filename = f"{value['Type']}-{value['Image_ID']}-{value['Timestamp']}-{unique:.15}.png"
             print(f"Image saved as {filename}")

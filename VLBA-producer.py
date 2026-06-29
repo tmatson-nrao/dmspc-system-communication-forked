@@ -35,6 +35,7 @@ with open("mock_assets/DSOC-data.csv", newline="") as f:
         if row["Image"]:
             with open(f"mock_assets/{row["Image"]}", 'rb') as file :
                 image = file.read()
+                print(f"Image {row['Image']} has {len(image)} bytes.")
         else: None
     
         #build JSON payload from the row
