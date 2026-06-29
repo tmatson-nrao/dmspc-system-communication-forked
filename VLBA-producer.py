@@ -33,7 +33,7 @@ with open("mock_assets/DSOC-data.csv", newline="") as f:
     reader = csv.DictReader(f, delimiter=" ")  #uses header row as keys
     for row in reader:
         if row["Image"]:
-            with open(f"mock_assets/{row["Image"]}", 'rb') as file :
+            with open(f"mock_assets/{row['Image']}", 'rb') as file :
                 image = file.read()
                 print(f"Image {row['Image']} has {len(image)} bytes.")
         else: None
