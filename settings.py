@@ -53,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'login_required.middleware.LoginRequiredMiddleware',
+    'ngRadar_Website.robots.RobotsMiddleware', 
 ]
 
 PASSWORD_HASHERS = [
