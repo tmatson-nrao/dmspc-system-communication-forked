@@ -6,41 +6,41 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-dark">
                     <tr>
-                        <th>Obs ID</th>
-                        <th>Product Type</th>
-                        <th>Target</th>
-                        <th>Xmit Station</th>
-                        <th>Rcvr Station</th>
-                        <th>Payload Image</th>
-                        <th>Event Time</th>
+                        <th class ="py-3">Object ID</th>
+                        <th class ="py-3">Target</th>
+                        <th class ="py-3">Xmit Station</th>
+                        <th class ="py-3">Rcvr Station</th>
+                        <th class ="py-3">Tx Waveform</th>
+                        <th class ="py-3">Rec Waveform</th>
+                        <th class ="py-3">Payload</th>
+                        <th class ="py-3">Timestamp</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for event in events %}
                     <tr>
-                        <td><span class="badge bg-secondary">{{ event.obs_id }}</span></td>
-                        <td><span class="badge bg-info text-dark">{{ event.product_type }}</span></td>
-                        <td><strong>{{ event.target }}</strong></td>
+                        <td>{{ event.object_id}}</td>
+                        <td>{{ event.target}}</td>
                         <td>
                             {% if event.xmit_station %}
-                                <span class="text-success fw-bold" title="{{ event.xmit_station }}">{{ event.xmit_station }}</span>
+                                <span class="text-success fw-bold">{{ event.xmit_station }}</span>
                             {% else %}
                                 <span class="text-muted">Unknown</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if event.rcvr_station %}
-                                <span class="text-primary fw-bold" title="{{ event.rcvr_station }}">{{ event.rcvr_station }}</span>
+                                <span class="text-primary fw-bold">{{ event.rcvr_station }}</span>
                             {% else %}
                                 <span class="text-muted">Unknown</span>
                             {% endif %}
                         </td>
+                        <td>{{ event.tx_waveform|default:"Unknown"}}</td>
+                        <td>{{ event.rec_waveform|default:"Unknown"}}</td> 
                         <td>
                             {% if event.image_file %}
                                 <!-- Clicking this link opens the original image in a new browser tab -->
-                                <a href="{{ event.image_file.url }}" target="_blank">
-                                    <img src="{{ event.image_file.url }}" alt="View Event Image" class="img-thumbnail" style="max-width: 150px;">
-                                </a>
+                                <a href="{% url 'serve_image' event.id %}" target="_blank">View {{ event.product_type }}</a>
                             {% else %}
                                 <span class="text-muted">No image uploaded</span>
                             {% endif %}
@@ -49,7 +49,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center text-muted">No observation streams found. Active listening...</td>
+                        <td colspan="8" class="text-center text-muted">No observation streams found. Active listening...</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -59,7 +59,7 @@
 </div>
 
 <!-- Latency -->
-<div class="row g-4 mb-4" id="metric-cards">
+<div class="row g-4 mb-4 mt-4" id="metric-cards">
     <!-- Latency Monitor Card -->
     <div class="col-md-4">
         <div class="card h-100 border-0 shadow-sm">
