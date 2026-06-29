@@ -26,8 +26,8 @@ def produce(topic, config, key, value):
   producer.flush()
 
 def main():
-    time.sleep(10)
     produce(topic, config, key, value)
+    time.sleep(10)
 
 with open("mock_assets/DSOC-data.csv", newline="") as f:
     reader = csv.DictReader(f, delimiter=" ")  #uses header row as keys
