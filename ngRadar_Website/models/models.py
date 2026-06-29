@@ -20,7 +20,7 @@ class ObservatoryEvent(models.Model):
             default=Stations.GBT, blank=True, null=True
         )    
     event_time = models.DateTimeField()
-    created_at = models.DateTimeField() 
+    created_at = models.DateTimeField(blank=True, null=True) 
 
     # This allows us to track the transmitter and receiver stations for each event
     xmit_station = models.CharField(
