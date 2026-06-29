@@ -147,3 +147,8 @@ LOGIN_REQUIRED_IGNORE_PATHS = [
 # ==============================================================================
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Setting to for live changing 
+if DEBUG:
+    INSTALLED_APPS += ['livereload']
+    MIDDLEWARE.insert(0, 'livereload.middleware.LiveReloadScript')
