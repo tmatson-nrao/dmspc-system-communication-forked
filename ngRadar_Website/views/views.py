@@ -7,7 +7,7 @@ from pathlib import Path
 
 #libraries used for data streaming
 import json
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpResponse, Http404
 
 from ngRadar_Website.models.models import ObservatoryEvent
 from django.contrib import messages
@@ -62,6 +62,18 @@ def event_table_partial(request):
     context = get_dashboard_context()
 
     return render(request, 'ngRadar_Website/partials/dashboard_updates.html', context)
+
+def serve_image(request, event_id):
+
+    # get draw bytes from DB 
+    raw = ObservatoryEvent.objects.filter(id=event_id).values_list('image_file', flat=True).first()
+
+    # if no image found, show 404
+    if not raw: 
+        raise Http404
+    
+    # send raw bytes to browser, labeled as PNG 
+    return HttpResponse(bytes(raw), content_type ='image/png')
 
 # Need a function AND another partial template for handling the user inputted payload
 # Don't worry about this until Sprint 45 I think

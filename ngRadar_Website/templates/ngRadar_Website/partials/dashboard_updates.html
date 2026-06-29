@@ -36,11 +36,11 @@
                             {% endif %}
                         </td>
                         <td>{{ event.tx_waveform|default:"Unknown"}}</td>
-                        <td>{{ event.rec_waveform|default:"Unknown"}}</td>
+                        <td>{{ event.rec_waveform|default:"Unknown"}}</td> 
                         <td>
                             {% if event.image_file %}
                                 <!-- Clicking this link opens the original image in a new browser tab -->
-                                <a href="{{ event.image_file.url }}" target="_blank">View</a>
+                                <a href="{% url 'serve_image' event.id %}" target="_blank">View {{ event.product_type }}</a>
                             {% else %}
                                 <span class="text-muted">No image uploaded</span>
                             {% endif %}
