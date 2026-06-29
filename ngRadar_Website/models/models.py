@@ -14,7 +14,7 @@ class ObservatoryEvent(models.Model):
     rec_waveform = models.CharField(max_length=100, blank=True, null=True)
 
     product_type = models.CharField(max_length=50, blank=True, null=True)
-    product_id = models.CharField(max_length=100, unique=True, blank=True, null=True)
+    product_id = models.CharField(max_length=100, blank=True, null=True)
     station = models.PositiveSmallIntegerField(
             choices=Stations.choices,
             default=Stations.GBT, blank=True, null=True
@@ -40,7 +40,7 @@ class ObservatoryEvent(models.Model):
 
 
     def __str__(self):
-        return f"Obs: {self.obs_id} | {self.xmit_station_id} -> {self.rcvr_station_id}"
+        return f"Obs: {self.object_id} | {self.xmit_station} -> {self.rcvr_station}"
 
 
     # what other tables may we need?
