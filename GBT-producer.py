@@ -1,5 +1,6 @@
 import json
 import time
+from datetime import datetime
 import csv
 import os
 from confluent_kafka import Producer
@@ -24,6 +25,9 @@ def produce(topic, config, key, value):
   # send any outstanding or buffered messages to the Kafka broker
   producer.flush()
 
+def main():
+    produce(topic, config, key, value)
+    time.sleep(5)
 
 with open("mock_assets/GBT-data.csv", newline="") as f:
     reader = csv.DictReader(f, delimiter=" ")  # uses header row as keys
@@ -33,17 +37,13 @@ with open("mock_assets/GBT-data.csv", newline="") as f:
             "Object": row["Object"],
             "Object_ID": row["Object_ID"],
             "Source": row["Source"],
-            "Tx_Status": row["Tx_Status"],
-            "Transmitted_WF": row["Transmitted_WF"],
-            "Recorded_WF": row["Recorded_WF"],
-            "Timestamp": f"{time.time()}"
+            "Tx_WF": row["Tx_WF"],
+            "Rec_WF": row["Rec_WF"],
+            "Timestamp": f"{datetime.now()}"
         }
         print(payload) # sanity check
 
         key = str(payload["Object_ID"]) if payload.get("Object_ID") else None
         value = json.dumps(payload).encode("utf-8")
 
-def main():
-    produce(topic, config, key, value)
-    time.sleep(10)
-main()
+        main()

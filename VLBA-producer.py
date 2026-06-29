@@ -25,6 +25,9 @@ def produce(topic, config, key, value):
   #send any outstanding or buffered messages to the Kafka broker
   producer.flush()
 
+def main():
+    time.sleep(10)
+    produce(topic, config, key, value)
 
 with open("mock_assets/DSOC-data.csv", newline="") as f:
     reader = csv.DictReader(f, delimiter=" ")  #uses header row as keys
@@ -39,7 +42,6 @@ with open("mock_assets/DSOC-data.csv", newline="") as f:
             "Object": row["Object"],
             "Object_ID": row["Object_ID"],
             "Source": row["Source"],
-            "Receiver": row["Receiver"],
             "Timestamp": f"{datetime.now()}",
             "Type": row["Type"],
             "Bytes": f"{len(image)}" if row["Image"] else None,
@@ -51,7 +53,4 @@ with open("mock_assets/DSOC-data.csv", newline="") as f:
         key = str(payload["Object_ID"]) if payload.get("Object_ID") else None
         value = json.dumps(payload).encode("utf-8")
 
-def main():
-    produce(topic, config, key, value)
-    time.sleep(10)
-main()
+        main()
