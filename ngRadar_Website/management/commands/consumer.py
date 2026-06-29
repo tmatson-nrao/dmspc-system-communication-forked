@@ -35,6 +35,16 @@ cursor = conn.cursor()
 topic = ["GBT_data", "DSOC_data"]  #NOTE The topic which the messages will be received from, rename accordingly to whatever topic you are using
 
 
+def latency_calc(event_time):
+  #calculates the latency of the message from the time it was sent to the time it was received
+  #returns latency in milliseconds
+
+  event_time = datetime.strptime(event_time, "%Y-%m-%d %H:%M:%S.%f")
+  current_time = datetime.now()
+  latency = current_time - event_time
+  latency_ms = latency.total_seconds() * 1000
+  return latency_ms
+
 def DB_columns(value):
   #dissects the payload to get individual values, and publishes to the correct column in the database
   #some values only exist for messages with images - these have if statements
@@ -48,7 +58,8 @@ def DB_columns(value):
     tx_waveform = value['Tx_WF']
     rec_waveform = value['Rec_WF']
     event_time = value['Timestamp']
-    return object_id, target, event_time, xmit_station, rec_waveform, tx_waveform
+    latency_ms = latency_calc(event_time)
+    return object_id, target, event_time, xmit_station, latency_ms, rec_waveform, tx_waveform
   else:
     xmit_station = "GBT"
     rcvr_station = value['Source']
@@ -58,7 +69,8 @@ def DB_columns(value):
     created_at = datetime.now()
     image_file = ast.literal_eval(value['Image'])
     num_bytes = value['Bytes']
-    return object_id, target, product_type, product_id, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes
+    latency_ms = latency_calc(event_time)
+    return object_id, target, product_type, product_id, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes, latency_ms
 
   #return object_id, target, product_type, product_id, station, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes, rec_waveform, tx_waveform
 
@@ -126,11 +138,11 @@ def consume(topic, config):
         #DB_columns(value)
 
         if value['Source'] == "GBT":
-          object_id, target, event_time, xmit_station, rec_waveform, tx_waveform = DB_columns(value)
-          publish_DB(object_id, target, product_type=None, product_id=None, station=None, event_time=event_time, created_at=None, xmit_station=xmit_station, rcvr_station=None, image_file=None, num_bytes=None, latency_ms=None, rec_waveform=rec_waveform, tx_waveform=tx_waveform)
+          object_id, target, event_time, xmit_station, latency_ms, rec_waveform, tx_waveform = DB_columns(value)
+          publish_DB(object_id, target, product_type=None, product_id=None, station=None, event_time=event_time, created_at=None, xmit_station=xmit_station, rcvr_station=None, image_file=None, num_bytes=None, latency_ms=latency_ms, rec_waveform=rec_waveform, tx_waveform=tx_waveform)
         else:
-          object_id, target, product_type, product_id, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes = DB_columns(value)
-          publish_DB(object_id, target, product_type, product_id, station=None, event_time=event_time, created_at=created_at, xmit_station=xmit_station, rcvr_station=rcvr_station, image_file=image_file, num_bytes=num_bytes, latency_ms=None, rec_waveform=None, tx_waveform=None)
+          object_id, target, product_type, product_id, event_time, created_at, xmit_station, rcvr_station, image_file, num_bytes, latency_ms = DB_columns(value)
+          publish_DB(object_id, target, product_type, product_id, station=None, event_time=event_time, created_at=created_at, xmit_station=xmit_station, rcvr_station=rcvr_station, image_file=image_file, num_bytes=num_bytes, latency_ms=latency_ms, rec_waveform=None, tx_waveform=None)
 
         if value['Source'] == "GBT":
           print(f"Received message from {value['Source']} for object {value['Object']} (Object ID: {value['Object_ID']}).")
