@@ -65,6 +65,12 @@ def get_Message_Latency():
     }
     yield f"data: {json.dumps(data_to_send)}\n\n"
 
+    data_to_send = {
+        "latency": last_message_latency_str,
+        "time_sent": last_message_time_str,
+    }
+    yield f"data: {json.dumps(data_to_send)}\n\n"
+
 def latency_graphing(request):
     response = StreamingHttpResponse(
         get_Message_Latency(),

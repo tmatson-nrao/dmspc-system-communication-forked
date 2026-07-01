@@ -1,6 +1,7 @@
     <div class="Live_Latency_Graph">
     <title>Live Graph</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="shortcut icon" href="#">
     <canvas id="LatencyChart"></canvas>
         <script>
             const maxNumberOfMessages = 20; // Maximum number of messages to keep in the chart
@@ -40,14 +41,38 @@
             source.onmessage = function(event) 
             {
                 const data = JSON.parse(event.data);//receive the JSON blob
-                Latency_Chart.data.labels.push(data.time_sent);
-                Latency_Chart.data.datasets[0].data.push(data.latency);
+                let messageDateTime = data.time_sent;
+                let messageLatency = data.latency;
+                let numberOfMessages = Latency_Chart.data.labels.length;
 
-                if (Latency_Chart.data.labels.length > maxNumberOfMessages) 
+                if(numberOfMessages == 0)
                 {
-                    Latency_Chart.data.labels.shift();
-                    Latency_Chart.data.datasets[0].data.shift();    // Removes oldest Y-axis data point
+                    Latency_Chart.data.labels.push(messageDateTime);
+                    Latency_Chart.data.datasets[0].data.push(messageLatency); 
                 }
+                else
+                {
+                    if (Latency_Chart.data.labels.length > maxNumberOfMessages) 
+                    {
+                        Latency_Chart.data.labels.shift();
+                        Latency_Chart.data.datasets[0].data.shift();    // Removes oldest Y-axis data point
+                    }
+                    else
+                    {
+                        lastDateTime = Latency_Chart.data.labels[numberOfMessages-1];
+                        if (lastDateTime != messageDateTime)
+                        {
+                            Latency_Chart.data.labels.push(messageDateTime);
+                            Latency_Chart.data.datasets[0].data.push(messageLatency); 
+                        }
+                    }
+
+                    //Latency_Chart.data.labels.push(data.time_sent);
+                    //Latency_Chart.data.datasets[0].data.push(data.latency);
+                } 
+                console.log(Latency_Chart.data.labels.length);
+                console.log(Latency_Chart.data.labels[0]);
+
                 Latency_Chart.update();
             };
         </script>
