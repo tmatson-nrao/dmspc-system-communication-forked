@@ -1,0 +1,54 @@
+    <div class="Live_Latency_Graph">
+    <title>Live Graph</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <canvas id="LatencyChart"></canvas>
+        <script>
+            const ctx = document.getElementById('LatencyChart').getContext('2d');
+            const Latency_Chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                        labels: [], // Time labels
+                        datasets: [{
+                        label: 'Message Latency',
+                        data: [], // Data points
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x:{
+                            title:
+                            {
+                                display: true,
+                                text: 'Time Sent (UTC)'
+                            }
+                        },
+                        y: {
+                            title:
+                            {
+                                display: true,
+                                text: 'Latency (ms)'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            const source = new EventSource("{% url 'latency_graphing' %}");
+            source.onmessage = function(event) 
+            {
+                const data = JSON.parse(event.data);
+                Latency_Chart.data.labels.push(data.time_sent);
+                Latency_Chart.data.datasets[0].data.push(data.latency);
+                // Latency_Chart.update();
+
+                if (Latency_Chart.data.labels.length > 20) 
+                {
+                    Latency_Chart.data.labels.shift();             // Removes oldest X-axis label
+                    Latency_Chart.data.datasets[0].data.shift();    // Removes oldest Y-axis data point
+                }
+                Latency_Chart.update();
+            };
+        </script>
+    </div>
