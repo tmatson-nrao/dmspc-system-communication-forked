@@ -3,6 +3,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <canvas id="LatencyChart"></canvas>
         <script>
+            const maxNumberOfMessages = 20; // Maximum number of messages to keep in the chart
             const ctx = document.getElementById('LatencyChart').getContext('2d');
             const Latency_Chart = new Chart(ctx, {
                 type: 'line',
@@ -38,14 +39,13 @@
             const source = new EventSource("{% url 'latency_graphing' %}");
             source.onmessage = function(event) 
             {
-                const data = JSON.parse(event.data);
+                const data = JSON.parse(event.data);//receive the JSON blob
                 Latency_Chart.data.labels.push(data.time_sent);
                 Latency_Chart.data.datasets[0].data.push(data.latency);
-                // Latency_Chart.update();
 
-                if (Latency_Chart.data.labels.length > 20) 
+                if (Latency_Chart.data.labels.length > maxNumberOfMessages) 
                 {
-                    Latency_Chart.data.labels.shift();             // Removes oldest X-axis label
+                    Latency_Chart.data.labels.shift();
                     Latency_Chart.data.datasets[0].data.shift();    // Removes oldest Y-axis data point
                 }
                 Latency_Chart.update();
