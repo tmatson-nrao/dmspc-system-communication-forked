@@ -1,3 +1,5 @@
+DATE_TIME_STRING=19
+
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 
@@ -51,6 +53,25 @@ def get_dashboard_context():
         'events': latest_events,
         'avg_latency': round(avg_latency, 2)
     }
+
+def get_Message_Latency():
+    last_message_latency_str = str(ObservatoryEvent.objects.last().latency_ms)
+    last_message_time_str = str(ObservatoryEvent.objects.last().event_time)
+    last_message_time_str = last_message_time_str[:DATE_TIME_STRING]  # Truncate to first 20 characters
+    
+    data_to_send = {
+        "latency": last_message_latency_str,
+        "time_sent": last_message_time_str
+    }
+    yield f"data: {json.dumps(data_to_send)}\n\n"
+
+def latency_graphing(request):
+    response = StreamingHttpResponse(
+        get_Message_Latency(),
+        content_type="text/event-stream; charset=utf-8"
+    )
+    response["Cache-Control"] = "no-cache"
+    return response
 
 @login_required
 def dashboard_view(request):
