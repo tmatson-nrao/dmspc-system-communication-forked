@@ -15,10 +15,8 @@ import io
 """
 This code will:
 - consume a message from the GBT
-- retrieve the data from the DB
 - create an image file
-- combine the GBT data with the new image data
-- load the combined data into the DB
+- load the image data + the uuid into the DB
 """
 
 load_dotenv()  # loads .env from current working dir
@@ -45,6 +43,8 @@ cursor = conn.cursor()
 
 topic = ["GBT_data"]  #consumes from the GBT's topic
 
+''' We aren't currently calculating latency at this step
+We have to decide how to implement latency in addition to having a simulated delay
 
 def latency_calc(event_time):
   #calculates the latency of the message from the time it was sent to the time it was received
@@ -55,6 +55,9 @@ def latency_calc(event_time):
   latency = current_time - event_time
   latency_ms = latency.total_seconds() * 1000
   return latency_ms
+'''
+
+''' We don't need to import anything from the GBT database! Leaving this here for now though
 
 def DB_import():
     #retrieves the most recent entry from the database and returns the GBT data
@@ -67,7 +70,8 @@ def DB_import():
 
     uuid, object_id, target, tx_waveform, rec_waveform, event_time, latency_ms = cursor.fetchone()
     return uuid, object_id, target, tx_waveform, rec_waveform, event_time, latency_ms
-
+'''
+    
 def DB_columns():
   #defines the column values specific to DSOC/images
 
@@ -80,17 +84,11 @@ def DB_columns():
 
     return product_type, product_id, station,created_at, xmit_station, rcvr_station
 
-def publish_DB(uuid, object_id, target, tx_waveform, rec_waveform, event_time, latency_ms, product_type, product_id, station, created_at, xmit_station, rcvr_station, image_file, num_bytes):
+def publish_DB(uuid, product_type, product_id, station, created_at, xmit_station, rcvr_station, image_file, num_bytes):
   #saves the DDM payload to the database and commits it 
   cursor.execute("""
                  INSERT INTO \"ngRadar_Website_dsocEvent\" (
                  uuid,
-                 object_id, 
-                 target, 
-                 tx_waveform, 
-                 rec_waveform, 
-                 event_time, 
-                 latency_ms, 
                  product_type, 
                  product_id, 
                  station, 
@@ -99,15 +97,9 @@ def publish_DB(uuid, object_id, target, tx_waveform, rec_waveform, event_time, l
                  rcvr_station,
                  image_file, 
                  num_bytes)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                  """, (
                    uuid,
-                   object_id, 
-                   target, 
-                   tx_waveform, 
-                   rec_waveform, 
-                   event_time, 
-                   latency_ms, 
                    product_type, 
                    product_id, 
                    station, 
@@ -141,10 +133,7 @@ def consume(topic, config):
             continue
 
         #decode the GBT payload that is a single string of just the uuid:
-        value = msg.value().decode("utf-8")
-
-        #import the GBT's data from the database:
-        uuid, object_id, target, tx_waveform, rec_waveform, event_time, latency_ms = DB_import()
+        uuid = msg.value().decode("utf-8")
 
         #generate a random image payload to simulate the DSOC's DDM product: 
         matplotlib.use('Agg')  # Use a non-interactive backend for matplotlib
@@ -175,10 +164,9 @@ def consume(topic, config):
         #create the rest of the column values specific to DSOC/images:
         product_type, product_id, station,created_at, xmit_station, rcvr_station = DB_columns()
 
-        publish_DB(uuid, object_id, target, tx_waveform, rec_waveform, event_time, latency_ms, product_type, product_id, station, created_at, xmit_station, rcvr_station, image_file, num_bytes)
+        publish_DB(uuid, product_type, product_id, station, created_at, xmit_station, rcvr_station, image_file, num_bytes)
         
-        print(f"Received message from {station} for object {target} (Object ID: {object_id}).")
-        print(f"DDM is ready (Image ID: {product_id}).")
+        print(f"Received message from {station}; DDM is ready (Image ID: {product_id}).")
         #unique = hashlib.sha256(str(value['Image']).encode('utf-8')).hexdigest()
         #filename = f"{value['Type']}-{value['Image_ID']}-{value['Timestamp']}-{unique:.15}.png"
         #print(f"Image saved as {filename}")
