@@ -1,3 +1,4 @@
+import random
 import json
 from datetime import datetime
 import time
@@ -47,7 +48,7 @@ with open("mock_assets/DSOC-data.csv", newline="") as f:
             "Type": row["Type"],
             "Bytes": f"{len(image)}" if row["Image"] else None,
             "Image": f"{image}" if row["Image"] else None, 
-            "Image_ID": row["Image_ID"]
+            "Image_ID": f"{random.randint(100000, 999999)}"
         }
         #print(payload) sanity check
 

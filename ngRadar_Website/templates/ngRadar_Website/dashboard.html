@@ -22,7 +22,7 @@
     <h1 class="text-wrapper-5 mb-0 fs-3">System Communication Demo</h1>
 </header>
     
-    <main class="flex-grow-1 container-fluid px-4 my-4">
+    <main class="flex-grow-0 container-fluid px-4 pt-4 pb-10">
         
         <!-- REAL-TIME LIVESTREAM DASHBOARD TARGET ZONE -->
         <!-- Polls the Django views every 3 seconds to inject raw database metrics below the header -->
@@ -36,13 +36,15 @@
 
     </main>
 
-    <div>
+    <div class="Chart_padding" style="padding-top: 30px;"></div>
         {% include 'ngRadar_Website/partials/latency_graph.html' %}
     </div>
-    
-    <footer class="mt-auto py-3 text-center border-top bg-light">
-        <p class="text-wrapper-7 mb-0">Developed by Cohort 1</p>
-    </footer>
+
+    <div class="footer-padding" style="padding-top: 50px;"></div>
+        <footer class="mt-auto py-3 text-center border-top bg-light">
+            <p class="text-wrapper-7 mb-0">Developed by Cohort 1</p>
+        </footer>
+    </div>
 
 </div>
 {% endblock %}
