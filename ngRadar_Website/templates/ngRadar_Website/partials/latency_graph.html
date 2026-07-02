@@ -1,0 +1,79 @@
+    <div class="Live_Latency_Graph">
+    <title>Live Graph</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="shortcut icon" href="#">
+    <canvas id="LatencyChart"></canvas>
+        <script>
+            const maxNumberOfMessages = 20; // Maximum number of messages to keep in the chart
+            const ctx = document.getElementById('LatencyChart').getContext('2d');
+            const Latency_Chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                        labels: [], // Time labels
+                        datasets: [{
+                        label: 'Message Latency',
+                        data: [], // Data points
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x:{
+                            title:
+                            {
+                                display: true,
+                                text: 'Time Sent (UTC)'
+                            }
+                        },
+                        y: {
+                            title:
+                            {
+                                display: true,
+                                text: 'Latency (ms)'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            const source = new EventSource("{% url 'latency_graphing' %}");
+            source.onmessage = function(event) 
+            {
+                const data = JSON.parse(event.data);//receive the JSON blob
+                let messageDateTime = data.time_sent;
+                let messageLatency = data.latency;
+                let numberOfMessages = Latency_Chart.data.labels.length;
+
+                if(numberOfMessages == 0)
+                {
+                    Latency_Chart.data.labels.push(messageDateTime);
+                    Latency_Chart.data.datasets[0].data.push(messageLatency); 
+                }
+                else
+                {
+                    if (Latency_Chart.data.labels.length > maxNumberOfMessages) 
+                    {
+                        Latency_Chart.data.labels.shift();
+                        Latency_Chart.data.datasets[0].data.shift();    // Removes oldest Y-axis data point
+                    }
+                    else
+                    {
+                        lastDateTime = Latency_Chart.data.labels[numberOfMessages-1];
+                        if (lastDateTime != messageDateTime)
+                        {
+                            Latency_Chart.data.labels.push(messageDateTime);
+                            Latency_Chart.data.datasets[0].data.push(messageLatency); 
+                        }
+                    }
+
+                    //Latency_Chart.data.labels.push(data.time_sent);
+                    //Latency_Chart.data.datasets[0].data.push(data.latency);
+                } 
+                console.log(Latency_Chart.data.labels.length);
+                console.log(Latency_Chart.data.labels[0]);
+
+                Latency_Chart.update();
+            };
+        </script>
+    </div>
