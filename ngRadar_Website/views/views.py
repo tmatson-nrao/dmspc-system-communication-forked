@@ -1,5 +1,3 @@
-DATE_TIME_STRING=19
-
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 
@@ -15,6 +13,9 @@ from ngRadar_Website.models.models import ObservatoryEvent
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.db.models import Avg
+
+#program constants
+DATE_TIME_STRING=19
 
 def login_view(request):
     if request.method == 'POST':
