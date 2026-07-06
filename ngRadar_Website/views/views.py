@@ -66,7 +66,7 @@ def get_latest_event():
 def live_dashboard(request):
     # this is the initial view to load the live dashboard
     context = get_latest_event()
-    return render(request, 'ngRadar_Website/partials/GBT-live.html', context) # pass any other vars to frontend here
+    return render(request, 'ngRadar_Website/index.html', context) # pass any other vars to frontend here
 
 def get_Message_Latency():
     last_message_latency_str = str(ObservatoryEvent.objects.last().latency_ms)
