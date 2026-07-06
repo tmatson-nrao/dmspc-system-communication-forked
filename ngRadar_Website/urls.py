@@ -3,7 +3,7 @@ from .views import views
 
 urlpatterns = [
     # Have not tested if this works as expected
-    path('index/', views.get_homepage_index, name='index'),
+    path('index/', views.live_dashboard, name='index'),
 
     path('dashboard/', views.dashboard_view, name='dashboard_home'),
     
