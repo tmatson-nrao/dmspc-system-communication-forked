@@ -13,6 +13,9 @@ from ngRadar_Website.models.models import ObservatoryEvent
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.db.models import Avg
+from confluent_kafka import Producer
+import os 
+from datetime import datetime, timezone 
 
 #program constants
 DATE_TIME_STRING=19
@@ -58,15 +61,6 @@ def get_dashboard_context():
         'events': latest_events,
         'avg_latency': round(avg_latency, 2)
     }
-
-def get_latest_event():
-    latest_event = ObservatoryEvent.objects.last()
-    return {'latest_event': latest_event}
-
-def live_dashboard(request):
-    # this is the initial view to load the live dashboard
-    context = get_latest_event()
-    return render(request, 'ngRadar_Website/index.html', context) # pass any other vars to frontend here
 
 def get_Message_Latency():
     last_message_latency_str = str(ObservatoryEvent.objects.last().latency_ms)
@@ -116,11 +110,33 @@ def serve_image(request, event_id):
     return HttpResponse(bytes(raw), content_type ='image/png')
 
 # Need a function AND another partial template for handling the user inputted payload
-# Don't worry about this until Sprint 45 I think
-# def user_input_partial(request):
-#     # this is the partial template view for handling user input
-#     # can we store user inputted data to the database here? should we?
-#     # how should we handle sending the user inputted payload to the Kafka topic?
-#     return render(request, 'user_input.html') # just an example .html, have not actually created this
+def submit_waveform(request):
+    if request.method == "POST":
+        waveform  = request.POST.get('waveform')
 
+        # Database version
+        ObservatoryEvent.objects.create(
+            object_id='user_submission',
+            target='user_submission',
+            tx_waveform=waveform,
+            event_time=datetime.now(timezone.utc)
+        )
 
+        '''
+        # Kafka version 
+        config = {
+            "bootstrao.servers": os.environ["BOOTSTRAP_SERVER"],
+            "client.id": "django-waveform-producer"
+        }
+
+        producer = Producer(config)
+
+        message = {
+            "Tx_WF": waveform,
+            "Timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        }
+
+        producer.produce("waveform_commands", key="waveform_change", value=json.dumps(message).encode('utf-8'))
+        producer.flush()
+        '''
+    return redirect('index')
