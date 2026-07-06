@@ -4,8 +4,9 @@
 
 {% block content %}
 
-<div
-  <header class="text-center"> Current Time in UTC: </header>
+<div>
+<header class="text-center"> Current Time in UTC: <span id="live-clock"> </span></header>
+
   <script>
           function getTime() {
               const now = new Date();
