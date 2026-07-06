@@ -1,45 +1,45 @@
 {% extends 'ngRadar_Website/base.html' %}
 
-{% block title %}ngRadar Website{% endblock %}
+{% block title %}Live Dashboard{% endblock %}
 
 {% block content %}
 
-<body data-color-mode="SDS-light">
+<div
+  <header class="text-center"> Current Time in UTC: </header>
+  <script>
+          function getTime() {
+              const now = new Date();
+              //function will update the UI date and time using JS functionality
+              // Extract UTC date and time components
+              const year = now.getUTCFullYear();
+              // Months are 0-indexed
+              const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+              const day = String(now.getUTCDate()).padStart(2, '0');
 
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta charset="utf-8" />
-    <title>System Communication Homepage
-    </title>
-    <link rel="stylesheet" href="../../static/ngRadar_Website/css/globals.css">
-    <link rel="stylesheet" href="../../static/ngRadar_Website/css/styleguide.css">
-    <link rel="stylesheet" href="../../static/ngRadar_Website/css/style.css">
-    <link rel="stylesheet" href="../../static/ngRadar_Website/css/customStyles.css">
-  </head>
+              const hours = String(now.getUTCHours()).padStart(2, '0');
+              const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+              const seconds = String(now.getUTCSeconds()).padStart(2, '0');
 
-  <body>
-    <main class="desktop" data-color-mode="SDS-light">
-      <header>
-        <img class="logogroupcolor" src="/static/ngRadar_Website/images/logo.png"
-          alt="NSF, Associated Universities, Inc., and National Radio Astronomy Observatory logos" />
-        <h1 class="text-wrapper-5">System Communication Homepage</h1>
-      </header>
-      <nav aria-label="Primary">
-        <button onclick="window.location.href='/dashboard'" class="button-5" type="button" aria-label="Open Dashboard">
-          <span class="button-2">Dashboard</span>
-        </button>
-        <button class="button-4" type="button" aria-label="Open PRDX Files">
-          <span class="button-2">PRDX Files</span>
-        </button>
-        <button class="button-3" type="button" aria-label="Open DDM History">
-          <span class="button-2">DDM History</span>
-        </button>
-        <button class="button" type="button" aria-label="Open CW Plot History">
-          <span class="button-2">CW Plot History</span>
-        </button>
-      </nav>
-	  
-	  
+              // Assemble the formatted time
+              const formattedTimestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+              
+              document.getElementById('live-clock').textContent = formattedTimestamp;
+          
+              //const timeString = now.toUTCString().substring(17,25);
+              // document.getElementById('live-clock').innerText = timeString;//Original code, used AI to generate the formatting
+          }
+          // Update the clock immediately and refresh every 1000ms
+          getTime();
+          setInterval(getTime, 1000);
+      </script>
+</div>
+
+
+{% include 'ngRadar_Website/partials/GBT-live.html' %}
+{% include 'ngRadar_Website/partials/DSOC-live.html' %}
+	
+
+<!-- 
       <section class="group-1" aria-label="Current time">
         <h2 class="div">Current Time in UTC:</h2>
         <p class="text-wrapper-time-title"> <span id="live-clock"></span> </p>
@@ -89,75 +89,7 @@
         <img class="molniya" src="/static/ngRadar_Website/images/molniya.png"
           alt="DDM visualization for target Molniya" />
       </section>
-      <footer>
-        <p class="text-wrapper-7">Developed by Cohort 1</p>
-      </footer>
     </main>
   </body>
-</body>
+</body> -->
 {% endblock %}
-
-
-
-
-
-
-
-<!--NEW HTML INCLUDING USER INPUT FIELD. DELETE ABOVE IF NOT NEEDED-->>
-
-
-<!DOCTYPE html>
-<html>
-
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta charset="utf-8" />
-  <link rel="stylesheet" href="globals.css">
-  <link rel="stylesheet" href="styleguide.css">
-  <link rel="stylesheet" href="style.css">
-</head>
-
-<body>
-  <div class="desktop"><img class="line" src="img/line-2.svg" />
-    <p class="target-moretus"><span class="text-wrapper">Target: </span>
-      <span class="span">Moretus</span>
-    </p>
-    <p class="object-ID"><span class="text-wrapper">Object ID: </span>
-      <span class="span">30104</span>
-    </p>
-    <p class="transmitted-waveform"><span class="text-wrapper">Transmitted Waveform: </span>
-      <span class="span">W49 </span>
-      <span class="text-wrapper"></span>
-    </p>
-    <p class="recorded-waveform"><span class="text-wrapper">Recorded Waveform: </span>
-      <span class="span">W49</span>
-    </p>
-    <p class="transmitter-ON"><span class="text-wrapper-2">Transmitter: </span>
-      <span class="text-wrapper-3">ON</span>
-      <span class="text-wrapper-2"></span>
-    </p>
-    <div class="group">
-      <div class="div">Current Time in UTC:</div>
-      <div class="text-wrapper-4">2026-06-16 17:42</div>
-    </div>
-    <button class="button">
-      <div class="button-2">CW Plot History</div>
-    </button>
-    <button class="button-3">
-      <div class="button-2">DDM History</div>
-    </button>
-    <button class="button-4">
-      <div class="button-2">PRDX Files</div>
-    </button>
-    <button class="button-5">
-      <div class="button-2">Tx Logs</div>
-    </button>
-    <img class="img" src="img/line-1.svg" />
-    <img class="logogroupcolor" src="img/logogroupcolor-1.png" />
-    <div class="text-wrapper-5">System Communication Demo</div>
-    <div class="text-wrapper-6">Developed by Cohort 1</div>
-    <img class="arrow" src="img/arrow-1.svg" />
-  </div>
-</body>
-
-</html>

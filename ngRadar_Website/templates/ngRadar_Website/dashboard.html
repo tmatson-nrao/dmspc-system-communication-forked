@@ -1,7 +1,7 @@
 {% extends 'ngRadar_Website/base.html' %}
 {% load static %}
 
-{% block title %}System Communication Demo{% endblock %}
+{% block title %}Observation History{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'ngRadar_Website/css/global.css' %}">
@@ -12,19 +12,6 @@
 <script src="https://unpkg.com/htmx.org@1.9.12/dist/htmx.min.js"></script>
 
 <div class="dashboard-wrapper d-flex flex-column min-vh-100" data-color-mode="SDS-light">
-    
-   <header class="p-3 border-bottom d-flex align-items-center gap-3">
-    <img class="logogroupcolor" 
-         src="{% static 'ngRadar_Website/images/logo.png' %}" 
-         alt="NSF, Associated Universities, Inc., and National Radio Astronomy Observatory logos"
-         style="height: 50px; width: auto; object-fit: contain;" />
-         
-    <h1 class="text-wrapper-5 mb-0 fs-3">System Communication Demo</h1>
-</header>
-
-    <button onclick="window.location.href='/index/'" type="button">
-          <span>Return to Homepage</span>
-    </button>
     
     <main class="flex-grow-0 container-fluid px-4 pt-4 pb-10">
         
@@ -44,11 +31,6 @@
         {% include 'ngRadar_Website/partials/latency_graph.html' %}
     </div>
 
-    <div class="footer-padding" style="padding-top: 50px;"></div>
-        <footer class="mt-auto py-3 text-center border-top bg-light">
-            <p class="text-wrapper-7 mb-0">Developed by Cohort 1</p>
-        </footer>
-    </div>
 
 </div>
 {% endblock %}
