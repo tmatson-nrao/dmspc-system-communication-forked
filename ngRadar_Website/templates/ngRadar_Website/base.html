@@ -27,7 +27,9 @@
       <h1 class="text-wrapper-5 mb-0 fs-2">System Communication Demo</h1>
     </header>
 
-    <!-- main row: left nav + right content -->
+
+    {% block everywhere %}
+     <!-- main row: left nav + right content -->
     <div class="d-flex flex-grow-1">
       <!-- LEFT NAV -->
         <nav class="p-3 border-end" style="min-width: 220px;" aria-label="Primary">
@@ -58,6 +60,9 @@
         </div>
       </main>
     </div>
+    {% endblock %}
+
+    
 
     <div class="footer-padding" style="padding-top: 50px;"></div>
     <footer class="mt-auto py-3 text-center border-top bg-light">
