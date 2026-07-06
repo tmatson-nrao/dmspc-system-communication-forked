@@ -1,6 +1,4 @@
-import hashlib
 import os
-import time
 from datetime import datetime, timedelta
 from PIL import Image
 from confluent_kafka import Consumer
@@ -145,7 +143,7 @@ def consume(topic, config):
         plt.scatter(x_data, y_data)
         plt.axhline(0, color='black', linewidth=0.5)
         plt.axvline(0, color='black', linewidth=0.5)
-        plt.title(f"DDM for {target}")
+        plt.title(f"DDM for {target}") #we would need to import the target variable from the GBT table if we want unique graph titles
         plt.xlabel("Doppler Freq (Hz)")
         plt.ylabel("Range (km)")
         plt.grid(True)
