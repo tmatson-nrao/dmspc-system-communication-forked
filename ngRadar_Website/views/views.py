@@ -61,6 +61,14 @@ def get_dashboard_context():
         'events': latest_events,
         'avg_latency': round(avg_latency, 2)
     }
+def get_latest_event():
+      latest_event = ObservatoryEvent.objects.last()
+      return {'latest_event': latest_event}
+
+def live_dashboard(request):
+    # this is the initial view to load the live dashboard
+    context = get_latest_event()
+    return render(request, 'ngRadar_Website/index.html', context)
 
 def get_Message_Latency():
     last_message_latency_str = str(ObservatoryEvent.objects.last().latency_ms)
