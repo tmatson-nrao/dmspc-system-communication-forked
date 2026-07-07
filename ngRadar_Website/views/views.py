@@ -9,13 +9,15 @@ from pathlib import Path
 import json
 from django.http import StreamingHttpResponse, HttpResponse, Http404
 
-from ngRadar_Website.models.models import ObservatoryEvent
+from ngRadar_Website.models.models import ObservatoryEvent, uiEvent, gbtEvent
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.db.models import Avg
 from confluent_kafka import Producer
 import os 
+import uuid
 from datetime import datetime, timezone 
+from confluent_kafka import Producer
 
 #program constants
 DATE_TIME_STRING=19
@@ -116,31 +118,38 @@ def serve_image(request, event_id):
 # Need a function AND another partial template for handling the user inputted payload
 def submit_waveform(request):
     if request.method == "POST":
+        uuid_input = uuid.uuid4()
         waveform  = request.POST.get('waveform')
-
+        timestamp = datetime.now()
         # Database version
-        uiEvent.objects.create(
-            object_id='user_submission',
-            target='user_submission',
-            tx_waveform=waveform,
-            event_time=datetime.now(timezone.utc)
+        ui_Event = uiEvent.objects.create(
+            uuid = uuid_input,
+            selected_waveform = waveform,
+            event_time = timestamp
         )
 
-        '''
+        
         # Kafka version 
+        topic = "user_input"
         config = {
-            "bootstrao.servers": os.environ["BOOTSTRAP_SERVER"],
-            "client.id": "django-waveform-producer"
-        }
-
-        producer = Producer(config)
-
+            "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
+            "message.max.bytes": 8388608,
+            "client.id": "ui-producer"}
         message = {
-            "Tx_WF": waveform,
-            "Timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+            "Updated Waveform": waveform,
+            "Timestamp": f"{timestamp}"
         }
 
-        producer.produce("waveform_commands", key="waveform_change", value=json.dumps(message).encode('utf-8'))
-        producer.flush()
-        '''
+        def produce(topic, config, key, value):
+            producer = Producer(config)
+            producer.produce(topic, key=key, value=value)
+            
+            producer.flush()
+
+        def main():
+            key = uuid_input.hex  # Use the UUID as the key for the Kafka message
+            value = json.dumps(message).encode("utf-8")
+            produce(topic, config, key, value)
+        main()
+        
     return redirect('index')
