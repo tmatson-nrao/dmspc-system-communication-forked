@@ -7,11 +7,15 @@ import uuid
 from confluent_kafka import Producer
 from confluent_kafka import Consumer
 import psycopg2
+from dotenv import load_dotenv
+load_dotenv()  # loads .env from current working dir
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+import django
+django.setup()
 from ngRadar_Website.models.models import uiEvent
 from ngRadar_Website.models.models import gbtEvent
 from dotenv import load_dotenv
-load_dotenv()  # loads .env from current working dir
-
+load_dotenv()
 
 # payload that will be inserted in the gbtEvent db table
 payload = {
@@ -25,14 +29,14 @@ payload = {
 
 producer_topic = "GBT_data"  # NOTE The topic to which the messages will be sent, rename accordingly to whatever topic you want to send the DDM payloads to.
 producer_config = {
-    "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
+    "bootstrap.servers": "4.tcp.ngrok.io:23446",
     "message.max.bytes": 8388608,
     "client.id": "GBT-producer"
 }
 
 consumer_topic = "user_input"  # NOTE Might want to change name
 consumer_config = {
-    "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
+    "bootstrap.servers": "4.tcp.ngrok.io:23446",
     "fetch.max.bytes": 8388608,
     "session.timeout.ms": 45000,
     "client.id": "GBT-consumer",
@@ -53,7 +57,7 @@ def set_payload_dict(waveform):
 def latency_calc(event_time):
     # calculates the latency of the message from the time it was sent to the time it was received
     # returns latency in milliseconds
-    event_time = datetime.strptime(event_time, "%Y-%m-%d %H:%M:%S.%f")
+    #event_time = event_time
     current_time = datetime.now()
     latency = current_time - event_time
     latency_ms = latency.total_seconds() * 1000
@@ -130,8 +134,8 @@ def main():
     # object_id, target, tx_waveform, rec_waveform, event_time, latency_ms = generate_initial_payload()
     # publish_to_db(object_id, target, tx_waveform, rec_waveform, event_time, latency_ms)
     set_payload_dict('W48')
-    gbt_uuid = publish_to_db(payload)
-    key, value = "GBT transmitting", gbt_uuid
+    gbt_uuid = publish_to_db()
+    key, value = "GBT transmitting", json.dumps(f"{gbt_uuid}").encode("utf-8")
     produce(producer_topic, producer_config, key, value)
     consume(consumer_topic, consumer_config)
 
