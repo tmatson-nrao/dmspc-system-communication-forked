@@ -113,9 +113,24 @@ services:
       - kafka
 
 
+  seaweedfs:
+    build: .
+    ports:
+      - "9333:9333"
+      - "8080:8080"
+      - "8333:8333"
+    volumes:
+      - seaweed_data:/data
+    networks:
+      - ngradar_website_network
+    env_file:
+      - .env
+
+
 volumes:
   postgres_data:
   staging_dump:
+  seaweed_data:
 
 networks:
   ngradar_website_network:
