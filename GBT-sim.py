@@ -15,7 +15,7 @@ django.setup()
 from ngRadar_Website.models.models import uiEvent
 from ngRadar_Website.models.models import gbtEvent
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=True)
 
 # payload that will be inserted in the gbtEvent db table
 payload = {
@@ -29,14 +29,14 @@ payload = {
 
 producer_topic = "GBT_data"  # NOTE The topic to which the messages will be sent, rename accordingly to whatever topic you want to send the DDM payloads to.
 producer_config = {
-    "bootstrap.servers": "4.tcp.ngrok.io:23446",
+    "bootstrap.servers": "8.tcp.ngrok.io:11337",
     "message.max.bytes": 8388608,
     "client.id": "GBT-producer"
 }
 
 consumer_topic = "user_input"  # NOTE Might want to change name
 consumer_config = {
-    "bootstrap.servers": "4.tcp.ngrok.io:23446",
+    "bootstrap.servers": "8.tcp.ngrok.io:11337",
     "fetch.max.bytes": 8388608,
     "session.timeout.ms": 45000,
     "client.id": "GBT-consumer",

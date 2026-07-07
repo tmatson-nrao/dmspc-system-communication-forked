@@ -18,6 +18,8 @@ import os
 import uuid
 from datetime import datetime, timezone 
 from confluent_kafka import Producer
+from dotenv import load_dotenv
+load_dotenv(override=True)
 
 #program constants
 DATE_TIME_STRING=19
