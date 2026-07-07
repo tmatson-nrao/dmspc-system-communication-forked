@@ -145,4 +145,13 @@ LOGIN_REQUIRED_IGNORE_PATHS = [
 # For prototype purposes only, to be replaved with cloud object storage later
 # ==============================================================================
 MEDIA_URL = '/media/'
+<<<<<<< HEAD
 MEDIA_ROOT = BASE_DIR / 'media'
+=======
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Setting to for live changing 
+# if DEBUG:
+#     INSTALLED_APPS += ['livereload']
+#     MIDDLEWARE.insert(0, 'livereload.middleware.LiveReloadScript')
+>>>>>>> aa0fbb6 (remove livereload and clean extra code index.html)

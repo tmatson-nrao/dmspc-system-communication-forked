@@ -25,14 +25,13 @@
               
               document.getElementById('live-clock').textContent = formattedTimestamp;
           
-              //const timeString = now.toUTCString().substring(17,25);
-              // document.getElementById('live-clock').innerText = timeString;//Original code, used AI to generate the formatting
-          }
+              }
           // Update the clock immediately and refresh every 1000ms
           getTime();
           setInterval(getTime, 1000);
       </script>
 </div>
+
 
 
 {% include 'ngRadar_Website/partials/GBT-live.html' %}
