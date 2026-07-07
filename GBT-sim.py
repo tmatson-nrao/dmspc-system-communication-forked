@@ -7,14 +7,21 @@ import uuid
 from confluent_kafka import Producer
 from confluent_kafka import Consumer
 import psycopg2
+from ngRadar_Website.models.models import uiEvent
+from ngRadar_Website.models.models import gbtEvent
 from dotenv import load_dotenv
 load_dotenv()  # loads .env from current working dir
 
-database = os.environ["POSTGRES_DB"]
-user = os.environ["POSTGRES_USER"]
-password = os.environ["POSTGRES_PASSWORD"]
-host = os.environ["POSTGRES_URL"]
-port = os.environ["POSTGRES_PORT"]
+
+# payload that will be inserted in the gbtEvent db table
+payload = {
+    "object_id": None, 
+    "target": None, 
+    "tx_waveform": None, 
+    "rec_waveform": None, 
+    "event_time": None, 
+    "latency_ms": None,
+}
 
 producer_topic = "GBT_data"  # NOTE The topic to which the messages will be sent, rename accordingly to whatever topic you want to send the DDM payloads to.
 producer_config = {
@@ -33,15 +40,19 @@ consumer_config = {
     "auto.offset.reset": "earliest",
 }
 
-# connecting to the team's render database:
-conn = psycopg2.connect(database=database, user=user, password=password, host=host, port=port)
-cursor = conn.cursor()
+
+def set_payload_dict(waveform):
+    payload["object_id"] = '30104'
+    payload["target"] = 'Moretus'
+    payload["tx_waveform"] = waveform
+    payload["rec_waveform"] = waveform
+    payload["event_time"] = datetime.now()
+    payload["latency_ms"] = latency_calc(payload["event_time"])
 
 
 def latency_calc(event_time):
     # calculates the latency of the message from the time it was sent to the time it was received
     # returns latency in milliseconds
-
     event_time = datetime.strptime(event_time, "%Y-%m-%d %H:%M:%S.%f")
     current_time = datetime.now()
     latency = current_time - event_time
@@ -49,57 +60,18 @@ def latency_calc(event_time):
     return latency_ms
 
 
-def generate_initial_payload():
-    object_id = '30104'
-    target = 'Moretus'
-    tx_waveform = 'W48'
-    rec_waveform = 'W48'
-    event_time = datetime.now()
-    latency_ms = latency_calc(event_time)
-    return object_id, target, tx_waveform, rec_waveform, event_time, latency_ms
+def generate_payload(ui_event_uuid):
+    # TODO test if this works
+    ui_event = uiEvent.objects.get(uuid=ui_event_uuid)
+
+    set_payload_dict(ui_event.selected_waveform)
 
 
-def generate_payload():
-    object_id = '30104'
-    target = 'Moretus'  # TODO maybe don't hardcode these??
+def publish_to_db():
+    # TODO test if this works
+    gbt_event = gbtEvent.objects.create(**payload)
 
-    #retrieves the most recent entry from the database and returns the GBT data
-    cursor.execute("""
-                   SELECT selected_waveform, event_time
-                   FROM "ngRadar_Website_uievent"
-                   ORDER BY event_time DESC
-                   LIMIT 1;
-                   """)
-    tx_waveform, event_time = cursor.fetchone()
-    rec_waveform = tx_waveform
-    latency_ms = latency_calc(event_time)
-
-    return object_id, target, tx_waveform, rec_waveform, event_time, latency_ms
-
-
-def publish_to_db(object_id, target, tx_waveform, rec_waveform, event_time, latency_ms):
-    # saves the DDM payload to the database, commits it, and closes the DB connection. 
-    # using placeholder values for the required column fields - will update with data from the actual message metadata
-    # TODO check if this is what table name gets created once we migrate
-    cursor.execute("""
-                   INSERT INTO \"ngRadar_Website_gbtevent\" (
-                   object_id, 
-                   target, 
-                   tx_waveform,
-                   rec_waveform,
-                   event_time, 
-                   latency_ms)
-                   VALUES (%s, %s, %s, %s, %s, %s)
-                   """, (
-                   object_id, 
-                   target, 
-                   tx_waveform,
-                   rec_waveform,
-                   event_time, 
-                   latency_ms))
-    conn.commit()
-
-    return print("DDM payload saved to database successfully.")
+    return gbt_event.uuid
 
 
 def produce(topic, config, key, value):
@@ -133,22 +105,18 @@ def consume(topic, config):
                 continue
 
             key = msg.key().decode("utf-8")
-            value = msg.value().decode("utf-8")
+            ui_uuid = msg.value().decode("utf-8")  # this is the uuid of the ui_event
 
             # fill in the values to be published to the db
-            object_id, target, tx_waveform, rec_waveform, event_time, latency_ms = generate_payload()
+            generate_payload(ui_uuid)
 
             # publish new transmission to the db
-            publish_to_db(object_id, target, tx_waveform, rec_waveform, event_time, latency_ms)
+            gbt_uuid = publish_to_db()
+
+            key, value = "GBT transmitting", gbt_uuid
 
             # produce this new message, lets DSOC know to produce image(s)
-            produce(producer_topic, producer_config, "GBT transmitting", value)
-           
-            # print(f"Received message from {value['Source']} for object {value['Object']} (Object ID: {value['Object_ID']}).")
-            # if value['Tx_WF'] != "Tx_OFF":
-            #     print(f"Observing with waveform {value['Tx_WF']}.")
-            # else:
-            #     print(f"Transmitter is currently OFF.")
+            produce(producer_topic, producer_config, key, value)
 
     except KeyboardInterrupt: 
         pass
@@ -159,9 +127,11 @@ def consume(topic, config):
 
 def main():
     # generate a dummy data payload, publish this data to the db, produce a message with this payload, then start consuming
-    object_id, target, tx_waveform, rec_waveform, event_time, latency_ms = generate_initial_payload()
-    publish_to_db(object_id, target, tx_waveform, rec_waveform, event_time, latency_ms)
-    key, value = "GBT transmitting", tx_waveform
+    # object_id, target, tx_waveform, rec_waveform, event_time, latency_ms = generate_initial_payload()
+    # publish_to_db(object_id, target, tx_waveform, rec_waveform, event_time, latency_ms)
+    set_payload_dict('W48')
+    gbt_uuid = publish_to_db(payload)
+    key, value = "GBT transmitting", gbt_uuid
     produce(producer_topic, producer_config, key, value)
     consume(consumer_topic, consumer_config)
 
