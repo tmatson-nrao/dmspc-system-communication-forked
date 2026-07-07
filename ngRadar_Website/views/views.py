@@ -9,7 +9,12 @@ from pathlib import Path
 import json
 from django.http import StreamingHttpResponse, HttpResponse, Http404
 
+<<<<<<< HEAD
 from ngRadar_Website.models.models import ObservatoryEvent, uiEvent, gbtEvent
+=======
+from ngRadar_Website.models.models import ObservatoryEvent
+from ngRadar_Website.models.models import uiEvent
+>>>>>>> d6cc9ad (update submit form for uiEvent Table)
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.db.models import Avg
@@ -124,10 +129,16 @@ def submit_waveform(request):
         waveform  = request.POST.get('waveform')
         timestamp = datetime.now()
         # Database version
+<<<<<<< HEAD
         ui_Event = uiEvent.objects.create(
             uuid = uuid_input,
             selected_waveform = waveform,
             event_time = timestamp
+=======
+        uiEvent.objects.create(
+            selected_waveform=waveform,
+            event_time=datetime.now(timezone.utc)
+>>>>>>> d6cc9ad (update submit form for uiEvent Table)
         )
 
         
