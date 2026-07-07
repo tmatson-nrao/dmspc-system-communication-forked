@@ -4,8 +4,8 @@
 
 {% block content %}
 
-<div
-  <header class="text-center"> Current Time in UTC: </header>
+<div>
+  <header class="text-center"> Current Time in UTC: <span id="live-clock"></span></header>
   <script>
           function getTime() {
               const now = new Date();
@@ -39,57 +39,4 @@
 {% include 'ngRadar_Website/partials/DSOC-live.html' %}
 	
 
-<!-- 
-      <section class="group-1" aria-label="Current time">
-        <h2 class="div">Current Time in UTC:</h2>
-        <p class="text-wrapper-time-title"> <span id="live-clock"></span> </p>
-      </section>
-      <script>
-          function getTime() {
-              const now = new Date();
-              //function will update the UI date and time using JS functionality
-              // Extract UTC date and time components
-              const year = now.getUTCFullYear();
-              // Months are 0-indexed
-              const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-              const day = String(now.getUTCDate()).padStart(2, '0');
-
-              const hours = String(now.getUTCHours()).padStart(2, '0');
-              const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-              const seconds = String(now.getUTCSeconds()).padStart(2, '0');
-
-              // Assemble the formatted time
-              const formattedTimestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-              
-              document.getElementById('live-clock').textContent = formattedTimestamp;
-          
-              //const timeString = now.toUTCString().substring(17,25);
-              // document.getElementById('live-clock').innerText = timeString;//Original code, used AI to generate the formatting
-          }
-          // Update the clock immediately and refresh every 1000ms
-          getTime();
-          setInterval(getTime, 1000);
-      </script>
-	  
-	  
-      <section aria-label="Observation details">
-        <p class="target-molniya"><span class="text-wrapper">Target: </span><strong class="span">Molniya</strong></p>
-        <p class="obs-ID-obs"><span class="text-wrapper">Obs_ID: </span><strong class="span">obs_001</strong></p>
-        <p class="text-wrapper-6">TLE:</p>
-        <p class="transmitter-ON"><span class="text-wrapper-2">Transmitter: </span><strong
-            class="text-wrapper-3">ON</strong></p>
-        <p class="transmitted-waveform"><span class="text-wrapper">Transmitted Waveform: </span><strong class="span">W49
-            (120 MHz LFM, 2ms PRP)</strong></p>
-        <p class="recorded-waveform"><span class="text-wrapper">Recorded Waveform: </span><strong class="span">W49 (120
-            MHz LFM, 2ms PRP)</strong></p>
-      </section>
-      <section aria-label="Plots">
-        <img class="cw-plot" src="/static/ngRadar_Website/images/cw_plot.jpg"
-          alt="CW plot for the current observation" />
-        <img class="molniya" src="/static/ngRadar_Website/images/molniya.png"
-          alt="DDM visualization for target Molniya" />
-      </section>
-    </main>
-  </body>
-</body> -->
 {% endblock %}

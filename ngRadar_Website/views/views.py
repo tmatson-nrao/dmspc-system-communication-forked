@@ -61,6 +61,8 @@ def get_dashboard_context():
         'events': latest_events,
         'avg_latency': round(avg_latency, 2)
     }
+
+
 def get_latest_event():
       latest_event = ObservatoryEvent.objects.last()
       return {'latest_event': latest_event}

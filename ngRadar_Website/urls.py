@@ -13,5 +13,7 @@ urlpatterns = [
     path('dashboard/graph', views.latency_graphing, name='latency_graphing'),
 
     # visiting this path for the image 
-    path('dashboard/image/<int:event_id>/', views.serve_image, name ='serve_image')
+    path('dashboard/image/<int:event_id>/', views.serve_image, name ='serve_image'),
+
+    path('submit-waveform/', views.submit_waveform, name='submit_waveform'),
 ]
