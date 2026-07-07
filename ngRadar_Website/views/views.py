@@ -119,7 +119,7 @@ def submit_waveform(request):
         waveform  = request.POST.get('waveform')
 
         # Database version
-        ObservatoryEvent.objects.create(
+        uiEvent.objects.create(
             object_id='user_submission',
             target='user_submission',
             tx_waveform=waveform,
