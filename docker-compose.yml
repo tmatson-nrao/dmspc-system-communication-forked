@@ -152,11 +152,28 @@ services:
     profiles:
       - kafka
 
+
+  worker2:
+    build: .
+    command: python manage.py dsoc_sim
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - broker
+    volumes:
+      - .:/service
+    networks:
+      - ngradar_website_network
+    profiles:
+      - kafka
+  
+  
   seaweedfs:
     build: .
     ports:
       - "9333:9333"
-      - "8080:8080"
+      # - "8080:8080"
       - "8333:8333"
     volumes:
       - seaweed_data:/data

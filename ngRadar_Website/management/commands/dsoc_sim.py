@@ -1,16 +1,16 @@
 import os
 from datetime import datetime, timedelta
 from PIL import Image
+from django.core.management.base import BaseCommand
 from confluent_kafka import Consumer
-import psycopg2
 from dotenv import load_dotenv
 import random
-import matplotlib.pyplot as plt
 import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
 import io
 from ngRadar_Website.models.models import gbtEvent, dsocEvent
-from django.db import close_old_connections
+# from django.db import close_old_connections
 
 """
 This code will:
@@ -37,12 +37,6 @@ config = {
   }
 
 
-''' We won't need this connection anymore:
-#Connecting to the team's render database (fill in password):
-conn = psycopg2.connect(database=database, user=user, password=password, host=host, port=port)
-cursor = conn.cursor()
-'''
-
 topic = ["GBT_data"]  #consumes from the GBT's topic
 
 ''' We aren't currently calculating latency at this step
@@ -59,27 +53,12 @@ def latency_calc(event_time):
   return latency_ms
 '''
 
-''' Previous import function for a direct DB connection:
-
-def DB_import():
-    #retrieves the most recent entry from the database and returns the GBT data
-    cursor.execute("""
-        SELECT uuid, object_id, target, tx_waveform, rec_waveform, event_time, latency_ms
-        FROM "ngRadar_Website_gbtEvent"
-        ORDER BY event_time DESC
-        LIMIT 1;
-    """)
-
-    uuid, object_id, target, tx_waveform, rec_waveform, event_time, latency_ms = cursor.fetchone()
-    return uuid, object_id, target, tx_waveform, rec_waveform, event_time, latency_ms
-'''
-
 
 def DB_import(uuid):
     
-    gbt_data = gbtEvent.objects.filter(id=uuid).values_list('uuid', 'target', 'event_time', 'GBT_latency_ms', flat=True).first()
+  gbt_data = gbtEvent.objects.filter(id=uuid).values_list('uuid', 'target', 'tx_waveform', 'event_time', 'GBT_latency_ms', flat=True).first()
 
-    return gbt_data
+  return gbt_data
 
 
 ''' Previous DB_columns function, before implementing dictionary:
@@ -108,7 +87,7 @@ def DB_columns():
        "station": random.choice(["SC", "HN", "NL", "FD", "LA", "PT", "KP", "OV", "BR", "MK"]),
        "created_at": datetime.now() - timedelta(seconds=10),
        "xmit_station": "GBT",
-       "rcvr_station": data.station #I don't think we actually need both a station and rcvr_station variable, I'm making them the same
+       "rcvr_station": data["station"] #I don't think we actually need both a station and rcvr_station variable, I'm making them the same
     }
 
     return data
@@ -157,7 +136,7 @@ def publish_DB(uuid, image_file, num_bytes, data):
   })
 
   try:
-          close_old_connections()
+          # close_old_connections()
 
           dsocEvent.objects.create(**data)
 
@@ -169,7 +148,7 @@ def publish_DB(uuid, image_file, num_bytes, data):
   return print(msg)
 
 
-def create_img(target):
+def create_img(tx_waveform):
     #generate a random image payload to simulate the DSOC's DDM product: 
     matplotlib.use('Agg')  # Use a non-interactive backend for matplotlib
         
@@ -180,7 +159,7 @@ def create_img(target):
     plt.scatter(x_data, y_data)
     plt.axhline(0, color='black', linewidth=0.5)
     plt.axvline(0, color='black', linewidth=0.5)
-    plt.title(f"DDM for {target}")
+    plt.title(f"DDM for {tx_waveform}")
     plt.xlabel("Doppler Freq (Hz)")
     plt.ylabel("Range (km)")
     plt.grid(True)
@@ -218,7 +197,7 @@ def consume(topic, config):
             continue
 
         #decode the GBT payload that is a single string of just the uuid:
-        uuid = msg.value().decode("utf-8")
+        uuid = msg.key().decode("utf-8")
 
         #use the uuid from the payload to import the correct line of data from the GBT table:
         gbt_data = DB_import(uuid)
@@ -226,7 +205,7 @@ def consume(topic, config):
         #create the rest of the column values specific to DSOC/images:
         data = DB_columns()
 
-        image_file, num_bytes = create_img(gbt_data.target)
+        image_file, num_bytes = create_img(gbt_data.tx_waveform)
 
         publish_DB(gbt_data.uuid, image_file, num_bytes, data)
 
@@ -250,8 +229,10 @@ def consume(topic, config):
     consumer.close()
 
 
-def main():
-  consume(topic, config)
+class Command(BaseCommand):
+    help = "Runs the DSOC simulator"
 
+    def handle(self, *args, **options):
+        print("Starting DSOC simulator")
 
-main()
+        consume(topic, config)
