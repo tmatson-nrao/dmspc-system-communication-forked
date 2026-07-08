@@ -12,6 +12,8 @@
   <link rel="stylesheet" href="{% static 'ngRadar_Website/css/styleguide.css' %}">
   <link rel="stylesheet" href="{% static 'ngRadar_Website/css/style.css' %}">
 
+  <!--add favicon-->
+  <link rel="icon" href="/static/ngRadar_Website/images/icon.png">
 </head>
 
 <script src="https://unpkg.com/htmx.org@1.9.12/dist/htmx.min.js"></script>
@@ -25,6 +27,13 @@
            alt="NSF, Associated Universities, Inc., and National Radio Astronomy Observatory logos"
            style="height: 60px; width: auto; object-fit: contain;" />
       <h1 class="text-wrapper-5 mb-0 fs-2">ngRadar System Communication Demo</h1>
+
+      {% if user.is_authenticated %}
+      <form action="{% url 'logout' %}" method="POST" style="margin-left:auto">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary btn-sm">Logout</button>
+      </form>
+      {% endif %}
     </header>
 
 

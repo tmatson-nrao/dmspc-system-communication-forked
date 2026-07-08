@@ -30,6 +30,10 @@ load_dotenv(override=True)
 DATE_TIME_STRING=19
 
 def login_view(request):
+    # logged-in user get redirected to index
+    # no stale form with old CSRF token 
+    if request.user.is_authenticated:
+        return redirect('index')
     if request.method == 'POST':
         username_input = request.POST['username']
         password_input = request.POST['password']
