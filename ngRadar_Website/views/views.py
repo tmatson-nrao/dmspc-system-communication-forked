@@ -11,10 +11,17 @@ from pathlib import Path
 import json
 from django.http import StreamingHttpResponse, HttpResponse, Http404
 
-from ngRadar_Website.models.models import ObservatoryEvent
+from ngRadar_Website.models.models import ObservatoryEvent, uiEvent, gbtEvent
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.db.models import Avg
+from confluent_kafka import Producer
+import os 
+import uuid
+from datetime import datetime, timezone 
+from confluent_kafka import Producer
+from dotenv import load_dotenv
+load_dotenv(override=True)
 
 #program constants
 DATE_TIME_STRING=19
@@ -62,14 +69,15 @@ def get_dashboard_context():
         'avg_latency': round(avg_latency, 2)
     }
 
+
 def get_latest_event():
-    latest_event = ObservatoryEvent.objects.last()
-    return {'latest_event': latest_event}
+      latest_event = ObservatoryEvent.objects.last()
+      return {'latest_event': latest_event}
 
 def live_dashboard(request):
     # this is the initial view to load the live dashboard
     context = get_latest_event()
-    return render(request, 'ngRadar_Website/index.html', context) # pass any other vars to frontend here
+    return render(request, 'ngRadar_Website/index.html', context)
 
 def get_Message_Latency():
     last_message_latency_str = str(ObservatoryEvent.objects.last().latency_ms)
@@ -79,12 +87,6 @@ def get_Message_Latency():
     data_to_send = {
         "latency": last_message_latency_str,
         "time_sent": last_message_time_str
-    }
-    yield f"data: {json.dumps(data_to_send)}\n\n"
-
-    data_to_send = {
-        "latency": last_message_latency_str,
-        "time_sent": last_message_time_str,
     }
     yield f"data: {json.dumps(data_to_send)}\n\n"
 
@@ -119,11 +121,37 @@ def serve_image(request, event_id):
     return HttpResponse(bytes(raw), content_type ='image/png')
 
 # Need a function AND another partial template for handling the user inputted payload
-# Don't worry about this until Sprint 45 I think
-# def user_input_partial(request):
-#     # this is the partial template view for handling user input
-#     # can we store user inputted data to the database here? should we?
-#     # how should we handle sending the user inputted payload to the Kafka topic?
-#     return render(request, 'user_input.html') # just an example .html, have not actually created this
+def submit_waveform(request):
+    if request.method == "POST":
+        uuid_input = uuid.uuid4()
+        waveform  = request.POST.get('waveform')
+        timestamp = datetime.now()
+        # Database version
+        ui_Event = uiEvent.objects.create(
+            uuid = uuid_input,
+            selected_waveform = waveform,
+            event_time = timestamp
+        )
 
+        
+        # Kafka version 
+        topic = "user_input"
+        config = {
+            "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
+            "message.max.bytes": 8388608,
+            "client.id": "ui-producer"}
+        message = "User input a new waveform."
 
+        def produce(topic, config, key, value):
+            producer = Producer(config)
+            producer.produce(topic, key=key, value=value)
+            
+            producer.flush()
+
+        def main():
+            key = uuid_input.hex  # Use the UUID as the key for the Kafka message
+            value = json.dumps(message).encode("utf-8")
+            produce(topic, config, key, value)
+        main()
+        
+    return redirect('index')
