@@ -62,7 +62,7 @@ def DB_columns():
 
     product_type = "DDM"
     product_id = f"DDM{random.randint(1000,9999)}"
-    station = random.choice(["SC", "HN", "NL", "FD", "LA", "PT", "KP", "OV", "BR", "MK"])
+    station = random.choice([9, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99])
     created_at = datetime.now() - timedelta(seconds=10)
     xmit_station = "GBT"
     rcvr_station = station
@@ -75,7 +75,7 @@ def DB_columns():
 def DB_columns():
   #defines the column values specific to DSOC/images
 
-    station = random.choice(["SC", "HN", "NL", "FD", "LA", "PT", "KP", "OV", "BR", "MK"])
+    station = random.choice([9, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99])  #randomly selects a station from the list of stations
 
     data = {
         "product_type": "DDM",
