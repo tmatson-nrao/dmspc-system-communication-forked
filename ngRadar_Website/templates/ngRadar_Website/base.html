@@ -28,7 +28,7 @@
            style="height: 60px; width: auto; object-fit: contain;" />
       <h1 class="text-wrapper-5 mb-0 fs-2">ngRadar System Communication Demo</h1>
 
-      {% if user.is_authenticated %}
+      {% if user.is_authenticated and request.resolver_match.url_name != 'login' %}
       <form action="{% url 'logout' %}" method="POST" style="margin-left:auto">
         {% csrf_token %}
         <button type="submit" class="btn btn-primary btn-sm">Logout</button>

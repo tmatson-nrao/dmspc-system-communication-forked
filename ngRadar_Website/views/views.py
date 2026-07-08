@@ -37,8 +37,11 @@ def login_view(request):
         else:
             messages.error(request, "Invalid username or password.")
             return render(request, 'registration/login.html')
-            
-    return render(request, 'registration/login.html')
+        
+    response = render(request, 'registration/login.html')
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        
+    return response 
 
 
 #import the producer
