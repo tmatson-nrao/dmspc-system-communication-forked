@@ -1,17 +1,14 @@
-import json
-import time
 from datetime import datetime
-import csv
 import os
-import uuid
+from django.core.management.base import BaseCommand
 from confluent_kafka import Producer
 from confluent_kafka import Consumer
-import psycopg2
 from ngRadar_Website.models.models import uiEvent
 from ngRadar_Website.models.models import gbtEvent
-from dotenv import load_dotenv
-load_dotenv()  # loads .env from current working dir
+from dotenv import find_dotenv
 
+path = find_dotenv()  # searches upward for a .env
+print("find_dotenv():", path)
 
 # payload that will be inserted in the gbtEvent db table
 payload = {
@@ -53,7 +50,6 @@ def set_payload_dict(waveform):
 def latency_calc(event_time):
     # calculates the latency of the message from the time it was sent to the time it was received
     # returns latency in milliseconds
-    event_time = datetime.strptime(event_time, "%Y-%m-%d %H:%M:%S.%f")
     current_time = datetime.now()
     latency = current_time - event_time
     latency_ms = latency.total_seconds() * 1000
@@ -61,14 +57,12 @@ def latency_calc(event_time):
 
 
 def generate_payload(ui_event_uuid):
-    # TODO test if this works
     ui_event = uiEvent.objects.get(uuid=ui_event_uuid)
 
     set_payload_dict(ui_event.selected_waveform)
 
 
 def publish_to_db():
-    # TODO test if this works
     gbt_event = gbtEvent.objects.create(**payload)
 
     return gbt_event.uuid
@@ -91,7 +85,7 @@ def consume(topic, config):
     consumer = Consumer(config)
 
     #subscribes to the specified topic
-    consumer.subscribe(topic)
+    consumer.subscribe([topic])
 
     try:
         while True:
@@ -104,8 +98,8 @@ def consume(topic, config):
                 print("Consumer error:", msg.error())
                 continue
 
-            key = msg.key().decode("utf-8")
-            ui_uuid = msg.value().decode("utf-8")  # this is the uuid of the ui_event
+            ui_uuid = msg.key().decode("utf-8")  # this is the uuid of the ui_event
+            notif = msg.value().decode("utf-8")
 
             # fill in the values to be published to the db
             generate_payload(ui_uuid)
@@ -113,7 +107,7 @@ def consume(topic, config):
             # publish new transmission to the db
             gbt_uuid = publish_to_db()
 
-            key, value = "GBT transmitting", gbt_uuid
+            key, value = f"{gbt_uuid}", "GBT transmitting"
 
             # produce this new message, lets DSOC know to produce image(s)
             produce(producer_topic, producer_config, key, value)
@@ -125,15 +119,15 @@ def consume(topic, config):
         consumer.close()
 
 
-def main():
-    # generate a dummy data payload, publish this data to the db, produce a message with this payload, then start consuming
-    # object_id, target, tx_waveform, rec_waveform, event_time, latency_ms = generate_initial_payload()
-    # publish_to_db(object_id, target, tx_waveform, rec_waveform, event_time, latency_ms)
-    set_payload_dict('W48')
-    gbt_uuid = publish_to_db(payload)
-    key, value = "GBT transmitting", gbt_uuid
-    produce(producer_topic, producer_config, key, value)
-    consume(consumer_topic, consumer_config)
+class Command(BaseCommand):
+    help = "Runs the GBT simulator"
 
+    def handle(self, *args, **options):
+        print("Starting GBT simulator")
 
-main()
+        # generate a dummy data payload, publish this data to the db, produce a message with this payload, then start consuming
+        set_payload_dict('W48')
+        gbt_uuid = publish_to_db()
+        key, value = f"{gbt_uuid}", "GBT transmitting"
+        produce(producer_topic, producer_config, key, value)
+        consume(consumer_topic, consumer_config)
