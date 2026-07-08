@@ -139,7 +139,12 @@ services:
 
   worker:
     build: .
-    command: python manage.py consumer
+    command: python manage.py gbt_sim
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - broker
     volumes:
       - .:/service
     networks:
