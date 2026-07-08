@@ -129,12 +129,22 @@ def submit_waveform(request):
             selected_waveform = waveform,
             event_time = timestamp
         )
+        p = Path("../../../out/ngrok_endpoint.env")
+        text = p.read_text().strip()
 
+        bootstrap = None
+        for line in text.splitlines():
+            if line.startswith("BOOTSTRAP_SERVER="):
+                bootstrap = line.split("=", 1)[1].strip()
+                break
+
+        if not bootstrap:
+            raise RuntimeError("BOOTSTRAP_SERVER not found in /out/ngrok_endpoint.env")
         
         # Kafka version 
         topic = "user_input"
         config = {
-            "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
+            "bootstrap.servers": bootstrap,
             "message.max.bytes": 8388608,
             "client.id": "ui-producer"}
         message = "User input a new waveform."
