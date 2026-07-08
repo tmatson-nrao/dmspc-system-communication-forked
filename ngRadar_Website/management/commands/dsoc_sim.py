@@ -148,11 +148,10 @@ def publish_DB(uuid, product_type, product_id, station, created_at, xmit_station
 '''
 
 
-def publish_DB(uuid, image_file, num_bytes, data):
-  #saves the DDM payload to the database
+def publish_DB(image_path, num_bytes, data):
+  #saves the image path to the database
   data.update({
-      "uuid": uuid,
-      "image_file": image_file,
+      "image_file": image_path,
       "num_bytes": num_bytes
   })
 
@@ -198,6 +197,28 @@ def create_img(target):
 
     return image_file, num_bytes
 
+def save_image_to_seaweedfs(target, image_file, uuid):
+    # Save the image to SeaweedFS using S3 API
+    import boto3
+    from botocore.exceptions import NoCredentialsError
+
+    s3 = boto3.client(
+        's3',
+        endpoint_url=os.environ.get('WEED_S3_DOMAIN'),
+        aws_access_key_id=os.environ.get('WEED_S3_ACCESS_KEY'),
+        aws_secret_access_key=os.environ.get('WEED_S3_SECRET_KEY')
+    )
+
+    image_path = f"{target}-{uuid}.png"
+
+    try:
+        s3.put_object(Bucket=os.environ.get('WEED_S3_BUCKET'), Key=image_path, Body=image_file)
+        print(f"Image saved to SeaweedFS at {image_path}")
+    except NoCredentialsError:
+        print("Credentials not available for SeaweedFS S3.")
+    
+    return image_path
+
 
 def consume(topic, config):
   #creates a new consumer instance
@@ -228,9 +249,11 @@ def consume(topic, config):
 
         image_file, num_bytes = create_img(gbt_data.target)
 
-        publish_DB(gbt_data.uuid, image_file, num_bytes, data)
+        image_path = save_image_to_seaweedfs(gbt_data.target, image_file, dsocEvent.uuid)
 
-        print(f"Received message from {data.station}; DDM is ready (Image ID: {data.product_id}).")
+        publish_DB(image_path, num_bytes, data)
+
+        print(f"Received message from {data.station}; DDM is ready in SeaweedFS (Image Path: {data.image_file}).")
 
         ''' Previous code using old functions:
         #create the rest of the column values specific to DSOC/images:

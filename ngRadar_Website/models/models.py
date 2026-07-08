@@ -9,6 +9,8 @@ from ngRadar_Website.enums import Stations
 
 class ObservatoryEvent(models.Model):
     # Mapping to your payload variables
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    gbt_uuid = models.UUIDField(blank=True, null=True)
     object_id = models.CharField(max_length=100)
     target = models.CharField(max_length=100)
     tx_waveform = models.CharField(max_length=100, blank=True, null=True)
@@ -35,7 +37,7 @@ class ObservatoryEvent(models.Model):
         blank=True, null=True
     )
     
-    image_file = models.ImageField(upload_to='ddm_payloads/', blank=True, null=True)
+    image_url = models.URLField(max_length=500) 
     num_bytes = models.IntegerField(blank=True, null=True)
     latency_ms = models.FloatField(default=0.0)
 
@@ -61,30 +63,7 @@ class dsocEvent(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     object_id = models.CharField(max_length=100)
     target = models.CharField(max_length=100)
-    tx_waveform = models.CharField(max_length=100)
-    rec_waveform = models.CharField(max_length=100)
-    event_time = models.DateTimeField()
-    latency_ms = models.FloatField(default=0.0)
-
-    product_type = models.CharField(max_length=50)
-    product_id = models.CharField(max_length=100)
-    station = models.PositiveSmallIntegerField(
-            choices=Stations.choices,
-            default=Stations.GBT, blank=True, null=True
-        )    
-    created_at = models.DateTimeField() 
-
-    # This allows us to track the transmitter and receiver stations for each event
-    xmit_station = models.CharField(
-        max_length=100, 
-        choices=Stations.choices, 
-    )
-    rcvr_station = models.CharField(
-        max_length=100, 
-        choices=Stations.choices, 
-    )
-    
-    image_file = models.ImageField(upload_to='ddm_payloads/') #NOTE change once we get object store set up
+    image_url = models.URLField(max_length=500) 
     num_bytes = models.IntegerField()
 
     def __str__(self):

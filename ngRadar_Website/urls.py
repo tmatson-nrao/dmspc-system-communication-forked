@@ -2,18 +2,16 @@ from django.urls import path
 from .views import views
 
 urlpatterns = [
-    # Have not tested if this works as expected
-    path('index/', views.live_dashboard, name='index'),
+    # Home page URLs
+    path('home/', views.home_view, name='home'),
+    path('home/gbt_events/', views.gbt_event_partial, name='gbt_events'),
+    path('home/dsoc_events/', views.dsoc_event_partial, name='dsoc_events'),
+    path('submit-waveform/', views.submit_waveform, name='submit_waveform'),
 
+    # Dashboard page URLs
     path('dashboard/', views.dashboard_view, name='dashboard_home'),
-    
-    # Have not tested if this works as expected
     path('dashboard/update/', views.event_table_partial, name='event_table_update'),
-
     path('dashboard/graph', views.latency_graphing, name='latency_graphing'),
-
-    # visiting this path for the image 
     path('dashboard/image/<int:event_id>/', views.serve_image, name ='serve_image'),
 
-    path('submit-waveform/', views.submit_waveform, name='submit_waveform'),
 ]
