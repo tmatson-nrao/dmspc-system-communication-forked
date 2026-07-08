@@ -137,10 +137,7 @@ def submit_waveform(request):
             "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
             "message.max.bytes": 8388608,
             "client.id": "ui-producer"}
-        message = {
-            "Updated Waveform": waveform,
-            "Timestamp": f"{timestamp}"
-        }
+        message = "User input a new waveform."
 
         def produce(topic, config, key, value):
             producer = Producer(config)
