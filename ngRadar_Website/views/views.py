@@ -9,12 +9,7 @@ from pathlib import Path
 import json
 from django.http import StreamingHttpResponse, HttpResponse, Http404
 
-<<<<<<< HEAD
 from ngRadar_Website.models.models import ObservatoryEvent, uiEvent, gbtEvent
-=======
-from ngRadar_Website.models.models import ObservatoryEvent
-from ngRadar_Website.models.models import uiEvent
->>>>>>> d6cc9ad (update submit form for uiEvent Table)
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.db.models import Avg
@@ -22,7 +17,6 @@ from confluent_kafka import Producer
 import os 
 import uuid
 from datetime import datetime, timezone 
-from confluent_kafka import Producer
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
@@ -30,10 +24,6 @@ load_dotenv(override=True)
 DATE_TIME_STRING=19
 
 def login_view(request):
-    # logged-in user get redirected to index
-    # no stale form with old CSRF token 
-    if request.user.is_authenticated:
-        return redirect('index')
     if request.method == 'POST':
         username_input = request.POST['username']
         password_input = request.POST['password']
@@ -131,18 +121,12 @@ def submit_waveform(request):
     if request.method == "POST":
         uuid_input = uuid.uuid4()
         waveform  = request.POST.get('waveform')
-        timestamp = datetime.now()
+        timestamp = datetime.now(timezone.utc)
         # Database version
-<<<<<<< HEAD
         ui_Event = uiEvent.objects.create(
             uuid = uuid_input,
             selected_waveform = waveform,
             event_time = timestamp
-=======
-        uiEvent.objects.create(
-            selected_waveform=waveform,
-            event_time=datetime.now(timezone.utc)
->>>>>>> d6cc9ad (update submit form for uiEvent Table)
         )
 
         
