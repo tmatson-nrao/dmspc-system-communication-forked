@@ -21,12 +21,6 @@ This code will:
 
 load_dotenv()  # loads .env from current working dir
 
-database = os.environ["POSTGRES_DB"]
-user = os.environ["POSTGRES_USER"]
-password = os.environ["POSTGRES_PASSWORD"]
-host = os.environ["POSTGRES_URL"]
-port = os.environ["POSTGRES_PORT"]
-
 config = {
     "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
     "fetch.max.bytes": 8388608,
@@ -56,7 +50,7 @@ def latency_calc(event_time):
 
 def DB_import(uuid):
     
-  gbt_data = gbtEvent.objects.filter(id=uuid).values_list('uuid', 'target', 'tx_waveform', 'event_time', 'GBT_latency_ms', flat=True).first()
+  gbt_data = gbtEvent.objects.filter(uuid=uuid).values_list('uuid', 'target', 'tx_waveform', 'event_time', 'latency_ms').first()
 
   return gbt_data
 
@@ -81,13 +75,15 @@ def DB_columns():
 def DB_columns():
   #defines the column values specific to DSOC/images
 
+    station = random.choice(["SC", "HN", "NL", "FD", "LA", "PT", "KP", "OV", "BR", "MK"])
+
     data = {
-       "product_type": "DDM",
-       "product_id": f"DDM{random.randint(1000,9999)}",
-       "station": random.choice(["SC", "HN", "NL", "FD", "LA", "PT", "KP", "OV", "BR", "MK"]),
-       "created_at": datetime.now() - timedelta(seconds=10),
-       "xmit_station": "GBT",
-       "rcvr_station": data["station"] #I don't think we actually need both a station and rcvr_station variable, I'm making them the same
+        "product_type": "DDM",
+        "product_id": f"DDM{random.randint(1000,9999)}",
+        "station": station,
+        "created_at": datetime.now() - timedelta(seconds=10),
+        "xmit_station": "GBT",
+        "rcvr_station": station,
     }
 
     return data
@@ -205,11 +201,12 @@ def consume(topic, config):
         #create the rest of the column values specific to DSOC/images:
         data = DB_columns()
 
-        image_file, num_bytes = create_img(gbt_data.tx_waveform)
+        uuid, target, tx_waveform, event_time, latency_ms = gbt_data
+        image_file, num_bytes = create_img(tx_waveform)
 
-        publish_DB(gbt_data.uuid, image_file, num_bytes, data)
+        publish_DB(uuid, image_file, num_bytes, data)
 
-        print(f"Received message from {data.station}; DDM is ready (Image ID: {data.product_id}).")
+        print(f"Received message from {data['station']}; DDM is ready (Image ID: {data['product_id']}).")
 
         ''' Previous code using old functions:
         #create the rest of the column values specific to DSOC/images:
