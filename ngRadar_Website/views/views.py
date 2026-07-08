@@ -19,7 +19,7 @@ from django.db.models import Avg
 #program constants
 DATE_TIME_STRING=19
 
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+# @cache_control(no_cache=True, must_revalidate=True, no_store=True) #Desmond's Auth token fix - uncomment if we decide to use
 def login_view(request):
     if request.method == 'POST':
         username_input = request.POST['username']
