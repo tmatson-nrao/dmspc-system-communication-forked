@@ -14,7 +14,7 @@ from pathlib import Path
 from confluent_kafka.admin import AdminClient, NewTopic
 
 
-p = Path("/out/ngrok_endpoint.env")
+p = Path("../../../../out/ngrok_endpoint.env")
 text = p.read_text().strip()
 
 bootstrap = None

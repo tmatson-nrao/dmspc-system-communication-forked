@@ -161,8 +161,13 @@ services:
       - /bin/sh
       - -c
       - |
+        rm -f /out/ngrok_endpoint.env
+        echo "Finding ngrok endpoint..."
         while [ ! -f /out/ngrok_endpoint.env ]; do sleep 2; done
-        echo "Using BOOTSTRAP_SERVER=$BOOTSTRAP_SERVER"
+        while [ ! -s /out/ngrok_endpoint.env ]; do sleep 1; done
+        echo "----- Using ngrok endpoint: -----"
+        cat /out/ngrok_endpoint.env
+        echo "------------------------------------"
         python manage.py gbt_sim
 
 
