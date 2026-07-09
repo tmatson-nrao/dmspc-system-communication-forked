@@ -25,6 +25,7 @@ load_dotenv(override=True)
 #program constants
 DATE_TIME_STRING=19
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True) #Desmond's Auth token fix - comment if we decide not to use
 def login_view(request):
     if request.method == 'POST':
         username_input = request.POST['username']
@@ -40,11 +41,12 @@ def login_view(request):
             messages.error(request, "Invalid username or password.")
             return render(request, 'registration/login.html')
         
-    response = render(request, 'registration/login.html')
-    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        
-    return response 
+    # Tung's auth token fix - uncomment if we decide to use this
+    # response = render(request, 'registration/login.html')
+    # response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
 
+    return render(request, 'registration/login.html')
+        
 
 #import the producer
 outside_dir = str(Path(__file__).resolve().parents[2])
@@ -80,9 +82,10 @@ def live_dashboard(request):
     context = get_latest_event()
     return render(request, 'ngRadar_Website/index.html', context)
 
-def create_observation(request):
-    # this is the initial view to load the newObservation page
-    return render(request, 'ngRadar_Website/newObservation.html')
+# Keep as a placeholder when we develop this feature.
+# def create_observation(request):
+#     # this is the initial view to load the newObservation page
+#     return render(request, 'ngRadar_Website/newObservation.html')
 
 def get_Message_Latency():
     last_message_latency_str = str(ObservatoryEvent.objects.last().latency_ms)

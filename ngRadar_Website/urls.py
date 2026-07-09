@@ -18,8 +18,9 @@ urlpatterns = [
 
     path('submit-waveform/', views.submit_waveform, name='submit_waveform'),
 
-    # path to blank page where we will allow new observations to be created
-    path('new_observation/',views.create_observation, name='create_new_observation'),
+    # Keep as placeholder when we develop this
+    # # path to blank page where we will allow new observations to be created
+    # path('new_observation/',views.create_observation, name='create_new_observation'),
     
     # add logout path 
     path('logout/', LogoutView.as_view(next_page='login'), name='logout')
