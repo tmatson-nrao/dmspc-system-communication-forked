@@ -15,6 +15,7 @@ services:
           condition: service_healthy
     volumes:
       - .:/service
+      - ngrok_env:/out
     ports:
       - 8000:8000
     networks:
@@ -74,11 +75,14 @@ services:
       - ngradar_website_network
 
   broker:
+    user: "0:0"
     image: confluentinc/cp-kafka:7.5.1
     profiles: ["kafka"]
     depends_on:
       - zookeeper
       - ngrok
+    volumes:
+      - ngrok_env:/out
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -119,15 +123,18 @@ services:
         echo $$NGROK_LISTENER
         export KAFKA_ADVERTISED_LISTENERS="$$KAFKA_ADVERTISED_LISTENERS, $$NGROK_LISTENER"
         echo "KAFKA_ADVERTISED_LISTENERS is set to " $$KAFKA_ADVERTISED_LISTENERS
+        NGROK_BOOTSTRAP=$(curl -s  http://ngrok:4040/api/tunnels/command_line | grep -Po '"public_url":.*?[^\\]",' | cut -d':' -f2- | tr -d ',"' | sed 's/tcp:\/\///')
+        echo "BOOTSTRAP_SERVER=$$NGROK_BOOTSTRAP" > /out/ngrok_endpoint.env
         /etc/confluent/docker/run
     # networks:
     #   - ngradar_website_network
+
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     profiles: ["kafka"]
     ports:
-      - "8080:8080"
+      - "8082:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: broker:29092
@@ -137,20 +144,32 @@ services:
       - ngradar_website_network
 
 
-  worker:
+  gbt:
     build: .
-    command: python manage.py gbt_sim
-    env_file:
-      - .env
+    # env_file:
+    #   - .env
     depends_on:
       - postgres
       - broker
     volumes:
       - .:/service
+      - ngrok_env:/out
     networks:
       - ngradar_website_network
-    profiles:
-      - kafka
+    profiles: ["kafka"]
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        rm -f /out/ngrok_endpoint.env
+        echo "Finding ngrok endpoint..."
+        while [ ! -f /out/ngrok_endpoint.env ]; do sleep 2; done
+        while [ ! -s /out/ngrok_endpoint.env ]; do sleep 1; done
+        echo "----- Using ngrok endpoint: -----"
+        cat /out/ngrok_endpoint.env
+        echo "------------------------------------"
+        python manage.py gbt_sim
+
 
 
   worker2:
@@ -170,11 +189,13 @@ services:
   
   
   seaweedfs:
-    build: .
+    build: 
+      context: .
+      dockerfile: seaweed.Dockerfile
     ports:
-      - "9333:9333"
-      # - "8080:8080"
-      - "8333:8333"
+      - "${FILER_PORT:-8888}:8888"
+      - "${MASTER_PORT:-9333}:9333"
+      - "${S3_PORT:-8333}:8333"
     volumes:
       - seaweed_data:/data
     networks:
@@ -182,11 +203,26 @@ services:
     env_file:
       - .env
 
+  storage-ui:
+    image: mastertinner/s3manager:latest
+    platform: linux/amd64
+    ports:
+      - "${GUI_PORT:-3000}:8080" 
+    environment:
+      - ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-anykey}
+      - SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-anysecret}
+      - ENDPOINT=seaweedfs:8333 
+      - USE_SSL=false
+    networks:
+      - ngradar_website_network
+
+
 
 volumes:
   postgres_data:
   staging_dump:
   seaweed_data:
+  ngrok_env:
 
 networks:
   ngradar_website_network:

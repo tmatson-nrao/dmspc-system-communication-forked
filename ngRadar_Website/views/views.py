@@ -1,6 +1,8 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 
+from django.views.decorators.cache import cache_control
+
 #libraries to get files from the outside directory
 import sys
 from pathlib import Path
@@ -17,13 +19,13 @@ from confluent_kafka import Producer
 import os 
 import uuid
 from datetime import datetime, timezone 
-from confluent_kafka import Producer
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
 #program constants
 DATE_TIME_STRING=19
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True) #Desmond's Auth token fix - comment if we decide not to use
 def login_view(request):
     if request.method == 'POST':
         username_input = request.POST['username']
@@ -38,8 +40,11 @@ def login_view(request):
         else:
             messages.error(request, "Invalid username or password.")
             return render(request, 'registration/login.html')
-            
-    return render(request, 'registration/login.html')
+        
+    response = render(request, 'registration/login.html')
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        
+    return response 
 
 
 #import the producer
@@ -122,19 +127,29 @@ def submit_waveform(request):
     if request.method == "POST":
         uuid_input = uuid.uuid4()
         waveform  = request.POST.get('waveform')
-        timestamp = datetime.now()
+        timestamp = datetime.now(timezone.utc)
         # Database version
         ui_Event = uiEvent.objects.create(
             uuid = uuid_input,
             selected_waveform = waveform,
             event_time = timestamp
         )
+        p = Path("../../../out/ngrok_endpoint.env")
+        text = p.read_text().strip()
 
+        bootstrap = None
+        for line in text.splitlines():
+            if line.startswith("BOOTSTRAP_SERVER="):
+                bootstrap = line.split("=", 1)[1].strip()
+                break
+
+        if not bootstrap:
+            raise RuntimeError("BOOTSTRAP_SERVER not found in /out/ngrok_endpoint.env")
         
         # Kafka version 
         topic = "user_input"
         config = {
-            "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
+            "bootstrap.servers": bootstrap,
             "message.max.bytes": 8388608,
             "client.id": "ui-producer"}
         message = "User input a new waveform."

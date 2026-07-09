@@ -5,10 +5,39 @@ from confluent_kafka import Producer
 from confluent_kafka import Consumer
 from ngRadar_Website.models.models import uiEvent
 from ngRadar_Website.models.models import gbtEvent
-from dotenv import find_dotenv
+# from dotenv import find_dotenv
+from pathlib import Path
 
-path = find_dotenv()  # searches upward for a .env
-print("find_dotenv():", path)
+# path = find_dotenv()  # searches upward for a .env
+# print("find_dotenv():", path)
+
+from confluent_kafka.admin import AdminClient, NewTopic
+
+
+p = Path("../../../../out/ngrok_endpoint.env")
+text = p.read_text().strip()
+
+bootstrap = None
+for line in text.splitlines():
+    if line.startswith("BOOTSTRAP_SERVER="):
+        bootstrap = line.split("=", 1)[1].strip()
+        break
+
+if not bootstrap:
+    raise RuntimeError("BOOTSTRAP_SERVER not found in /out/ngrok_endpoint.env")
+
+#bootstrap = os.environ["BOOTSTRAP_SERVER"] 
+admin = AdminClient({"bootstrap.servers": bootstrap})
+topics = [
+    NewTopic("user_input", num_partitions=3, replication_factor=1),
+    NewTopic("GBT_data", num_partitions=1, replication_factor=1),
+]
+fs = admin.create_topics(topics, request_timeout=30)
+
+for topic, f in fs.items():
+    # f is a Future; result() will raise if creation failed for reasons other than "already exists"
+    f.result()
+
 
 # payload that will be inserted in the gbtEvent db table
 payload = {
@@ -22,14 +51,14 @@ payload = {
 
 producer_topic = "GBT_data"  # NOTE The topic to which the messages will be sent, rename accordingly to whatever topic you want to send the DDM payloads to.
 producer_config = {
-    "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
+    "bootstrap.servers": bootstrap,
     "message.max.bytes": 8388608,
     "client.id": "GBT-producer"
 }
 
 consumer_topic = "user_input"  # NOTE Might want to change name
 consumer_config = {
-    "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
+    "bootstrap.servers": bootstrap,
     "fetch.max.bytes": 8388608,
     "session.timeout.ms": 45000,
     "client.id": "GBT-consumer",
