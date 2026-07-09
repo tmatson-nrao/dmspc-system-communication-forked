@@ -11,6 +11,8 @@ Code for prototyping system communication for the ngRadar project. This code is 
 | `control.sh` | A thin wrapper script so the team doesn't need to memorize `docker compose` invocations |
 | `.env` | Environment variables consumed by `/settings.py` (our .env file is never committed to Github - please ask team for the .env file for local dev) |
 
+# Start the Virtual Environment
+# source .venv/bin/activate
 
 
 ## For your convenience, use the below `control.sh` wrapper controls:

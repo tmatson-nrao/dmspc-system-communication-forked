@@ -1,20 +1,12 @@
-<div class="container mt-5">
-  <div class="row g-4 justify-content-center">
-    <div class="col-12 col-md-6">
-      <div class="border rounded p-3 bg-white text-center">
-        <h5 class="mb-2">Latest DDM Image:</h5>
-            {% if dsoc_event %}
-                <img
-                    src="{% url 'serve_image' dsoc_event.uuid %}"
-                    class="img-fluid mx-auto d-block"
-                    alt="Latest DDM">
-            {% else %}
-                <p class="text-muted">No image available</p>
-            {% endif %}
-      </div>
-
-
-      <!-- add more rows as needed -->
-    </div>
-  </div>
+<div class="mt-4 border rounded pt-3 pb-3 bg-white ps-3 pe-3 text-center mx-auto"
+style="max-width: 50rem;">
+        <h5 class="fw-bold">Latest DDM:</h5>
+          {% if dsoc_event %}
+                  <img
+                      src="{% url 'serve_image' dsoc_event.uuid %}"
+                      class="img-fluid mx-auto d-block"
+                      alt="Latest DDM">
+              {% else %}
+                  <p class="text-muted">No image available</p>
+              {% endif %}
 </div>

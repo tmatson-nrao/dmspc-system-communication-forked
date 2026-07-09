@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import views
+from django.contrib.auth.views import LogoutView
 
 urlpatterns = [
     # Home page URLs
@@ -14,4 +15,8 @@ urlpatterns = [
     path('dashboard/graph', views.latency_graphing, name='latency_graphing'),
     path('dashboard/image/<int:event_id>/', views.serve_image, name ='serve_image'),
 
+    
+
+    # add logout path 
+    path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
 ]
