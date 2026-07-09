@@ -1,6 +1,8 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 
+from django.views.decorators.cache import cache_control
+
 #libraries to get files from the outside directory
 import sys
 from pathlib import Path
@@ -24,6 +26,7 @@ load_dotenv(override=True)
 #program constants
 DATE_TIME_STRING=19
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True) #Desmond's Auth token fix - comment if we decide not to use
 def login_view(request):
     if request.method == 'POST':
         username_input = request.POST['username']
