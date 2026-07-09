@@ -13,14 +13,8 @@
   <link rel="stylesheet" href="{% static 'ngRadar_Website/css/styleguide.css' %}">
   <link rel="stylesheet" href="{% static 'ngRadar_Website/css/style.css' %}">
 
-  <!-- <link rel="stylesheet" href="../../static/ngRadar_Website/css/globals.css">
-  <link rel="stylesheet" href="../../static/ngRadar_Website/css/styleguide.css">
-  <link rel="stylesheet" href="../../static/ngRadar_Website/css/style.css"> -->
-
-  <link rel="icon" type="image/x-icon" href="{% static 'ngRadar_Website/images/favicon/favicon.ico' %}">
-  <!-- <link rel="icon" type="image/x-icon" href="/static/ngRadar_Website/images/favicon/favicon.ico"> -->
-  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'ngRadar_Website/images/favicon/apple-touch-icon.png' %}">
-  <link rel="manifest" href="{% static 'ngRadar_Website/images/favicon/site.webmanifest' %}">
+  <!--add favicon-->
+  <link rel="icon" href="/static/ngRadar_Website/images/icon.png">
 </head>
 
 <!-- HTMX Engine Injection -->
@@ -35,6 +29,13 @@
            alt="NSF, Associated Universities, Inc., and National Radio Astronomy Observatory logos"
            style="height: 60px; width: auto; object-fit: contain;" />
       <h1 class="text-wrapper-5 mb-0 fs-2">ngRadar System Communication Demo</h1>
+
+      {% if user.is_authenticated and request.resolver_match.url_name != 'login' %}
+      <form action="{% url 'logout' %}" method="POST" style="margin-left:auto">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary btn-sm">Logout</button>
+      </form>
+      {% endif %}
     </header>
 
 
