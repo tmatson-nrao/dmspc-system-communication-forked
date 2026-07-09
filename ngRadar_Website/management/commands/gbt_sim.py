@@ -3,6 +3,7 @@ import os
 from django.core.management.base import BaseCommand
 from confluent_kafka import Producer
 from confluent_kafka import Consumer
+from ngRadar_Website.enums import Stations
 from ngRadar_Website.models.models import uiEvent
 from ngRadar_Website.models.models import gbtEvent
 from dotenv import find_dotenv
@@ -65,6 +66,18 @@ def generate_payload(ui_event_uuid):
 def publish_to_db():
     gbt_event = gbtEvent.objects.create(**payload)
 
+    # Also save the gbt_event to the ObservatoryEvent table immediately after
+    from ngRadar_Website.models.models import ObservatoryEvent
+    from ngRadar_Website.enums import Stations
+    ObservatoryEvent.objects.create(
+        object_id=gbt_event.object_id,
+        target=gbt_event.target,
+        tx_waveform=gbt_event.tx_waveform,
+        rec_waveform=gbt_event.rec_waveform,
+        event_time=gbt_event.event_time,
+        latency_ms=gbt_event.latency_ms,
+        station=Stations.GBT,
+    )
     return gbt_event.uuid
 
 

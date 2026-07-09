@@ -32,25 +32,7 @@
      <!-- main row: left nav + right content -->
     <div class="d-flex flex-grow-1">
       <!-- LEFT NAV -->
-        <nav class="p-3 border-end" style="min-width: 220px;" aria-label="Primary">
-        <div class="d-grid gap-2">
-            <button onclick="window.location.href='/index/'" class="btn btn-dark" type="button">
-            Live Dashboard
-            </button>
-            <button onclick="window.location.href='/dashboard'" class="btn btn-dark" type="button">
-            History
-            </button>
-            <button class="btn btn-dark" type="button">
-            PRDX Files
-            </button>
-            <button class="btn btn-dark" type="button">
-            TLEs
-            </button>
-            <button class="btn btn-dark" type="button">
-            Plan Observation
-            </button>
-        </div>
-        </nav>
+        {% include 'ngRadar_Website/partials/nav.html' %}
 
 
       <!-- RIGHT CONTENT -->

@@ -4,9 +4,15 @@
 
 {% block content %}
 
-<div>
-  <header class="text-center"> Current Time in UTC: <span id="live-clock"></span></header>
-  <script>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+         <!-- Centered clock -->
+        <header class="position-absolute start-50 translate-middle-x text-nowrap">
+            Current Time in UTC:
+            <span id="live-clock"></span>
+        </header>
+        <script>
           function getTime() {
               const now = new Date();
               //function will update the UI date and time using JS functionality
@@ -32,11 +38,38 @@
           getTime();
           setInterval(getTime, 1000);
       </script>
+
+     <!-- Waveform input -->
+        <div>
+            <div class="border rounded p-3 bg-white">
+                <form 
+                    action="{% url 'submit_waveform' %}" 
+                    method="POST" 
+                    class="d-flex align-items-center gap-2"
+                >
+                    {% csrf_token %}
+
+                    <input 
+                        type="text" 
+                        name="waveform" 
+                        placeholder="e.g. W45" 
+                        class="form-control"
+                        style="width: 150px;"
+                    >
+
+                    <button type="submit" class="btn btn-primary">
+                        Submit
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 
-{% include 'ngRadar_Website/partials/GBT-live.html' %}
-{% include 'ngRadar_Website/partials/DSOC-live.html' %}
+
+{% include 'ngRadar_Website/partials/gbt_home_partial.html' %}
+{% include 'ngRadar_Website/partials/dsoc_home_partial.html' %}
 	
 
 {% endblock %}

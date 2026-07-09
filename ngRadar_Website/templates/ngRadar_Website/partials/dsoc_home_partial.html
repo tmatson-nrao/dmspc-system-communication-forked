@@ -1,21 +1,16 @@
 <div class="container mt-5">
-  <div class="row g-4">
-    <!-- Left column -->
+  <div class="row g-4 justify-content-center">
     <div class="col-12 col-md-6">
-      <div class="border rounded p-3 bg-white">
-        <h5 class="mb-2">Latest CW Plot:</h5>
-        <p class="mb-0">CW plot here</p>
-      </div>
-
-
-      <!-- add more rows as needed -->
-    </div>
-
-    <!-- Right column -->
-    <div class="col-12 col-md-6">
-      <div class="border rounded p-3 bg-white">
-        <h5 class="mb-2">Latest DDM:</h5>
-        <p class="mb-0">DDM here</p>
+      <div class="border rounded p-3 bg-white text-center">
+        <h5 class="mb-2">Latest DDM Image:</h5>
+            {% if dsoc_event %}
+                <img
+                    src="{% url 'serve_image' dsoc_event.uuid %}"
+                    class="img-fluid mx-auto d-block"
+                    alt="Latest DDM">
+            {% else %}
+                <p class="text-muted">No image available</p>
+            {% endif %}
       </div>
 
 

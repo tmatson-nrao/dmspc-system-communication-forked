@@ -21,11 +21,6 @@ This code will:
 
 load_dotenv()  # loads .env from current working dir
 
-database = os.environ["POSTGRES_DB"]
-user = os.environ["POSTGRES_USER"]
-password = os.environ["POSTGRES_PASSWORD"]
-host = os.environ["POSTGRES_URL"]
-port = os.environ["POSTGRES_PORT"]
 
 config = {
     "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
@@ -36,12 +31,6 @@ config = {
     "auto.offset.reset": "earliest",
   }
 
-
-''' We won't need this connection anymore:
-#Connecting to the team's render database (fill in password):
-conn = psycopg2.connect(database=database, user=user, password=password, host=host, port=port)
-cursor = conn.cursor()
-'''
 
 topic = ["GBT_data"]  #consumes from the GBT's topic
 
@@ -59,20 +48,6 @@ def latency_calc(event_time):
   return latency_ms
 '''
 
-''' Previous import function for a direct DB connection:
-
-def DB_import():
-    #retrieves the most recent entry from the database and returns the GBT data
-    cursor.execute("""
-        SELECT uuid, object_id, target, tx_waveform, rec_waveform, event_time, latency_ms
-        FROM "ngRadar_Website_gbtEvent"
-        ORDER BY event_time DESC
-        LIMIT 1;
-    """)
-
-    uuid, object_id, target, tx_waveform, rec_waveform, event_time, latency_ms = cursor.fetchone()
-    return uuid, object_id, target, tx_waveform, rec_waveform, event_time, latency_ms
-'''
 
 
 def DB_import(uuid):
@@ -82,21 +57,6 @@ def DB_import(uuid):
     return gbt_data
 
 
-''' Previous DB_columns function, before implementing dictionary:
-
-def DB_columns():
-  #defines the column values specific to DSOC/images
-
-    product_type = "DDM"
-    product_id = f"DDM{random.randint(1000,9999)}"
-    station = random.choice(["SC", "HN", "NL", "FD", "LA", "PT", "KP", "OV", "BR", "MK"])
-    created_at = datetime.now() - timedelta(seconds=10)
-    xmit_station = "GBT"
-    rcvr_station = station
-
-    return product_type, product_id, station,created_at, xmit_station, rcvr_station
-
-'''
 
 
 def DB_columns():
@@ -114,52 +74,16 @@ def DB_columns():
     return data
 
 
-''' Previous publish_DB function for a direct DB connection:
-
-def publish_DB(uuid, product_type, product_id, station, created_at, xmit_station, rcvr_station, image_file, num_bytes):
-  #saves the DDM payload to the database and commits it 
-  cursor.execute("""
-                 INSERT INTO \"ngRadar_Website_dsocEvent\" (
-                 uuid,
-                 product_type, 
-                 product_id, 
-                 station, 
-                 created_at, 
-                 xmit_station, 
-                 rcvr_station,
-                 image_file, 
-                 num_bytes)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                 """, (
-                   uuid,
-                   product_type, 
-                   product_id, 
-                   station, 
-                   created_at, 
-                   xmit_station, 
-                   rcvr_station, 
-                   image_file, 
-                   num_bytes))
-  conn.commit()
-  #conn.close()
-
-  return print("DDM payload saved to database successfully.")
-
-'''
-
-
-def publish_DB(image_path, num_bytes, data):
+def publish_DB(image_url, num_bytes, data):
   #saves the image path to the database
   data.update({
-      "image_file": image_path,
+      "image_url": image_url,
       "num_bytes": num_bytes
   })
 
   try:
           close_old_connections()
-
           dsocEvent.objects.create(**data)
-
           msg = "Payload saved to database successfully."
 
   except Exception as e:
@@ -209,15 +133,20 @@ def save_image_to_seaweedfs(target, image_file, uuid):
         aws_secret_access_key=os.environ.get('WEED_S3_SECRET_KEY')
     )
 
-    image_path = f"{target}-{uuid}.png"
+    image_key = f"ddm/{target}/{uuid}.png"
 
     try:
-        s3.put_object(Bucket=os.environ.get('WEED_S3_BUCKET'), Key=image_path, Body=image_file)
-        print(f"Image saved to SeaweedFS at {image_path}")
+        s3.put_object(Bucket=os.environ.get('WEED_S3_BUCKET'), Key=image_key, Body=image_file)
+        print(f"Image saved to SeaweedFS at {image_key}")
+        image_url = (
+            f"{os.environ['WEED_S3_DOMAIN']}/"
+            f"{os.environ['WEED_S3_BUCKET']}/"
+            f"{image_key}"
+        )
     except NoCredentialsError:
         print("Credentials not available for SeaweedFS S3.")
     
-    return image_path
+    return image_key
 
 
 def consume(topic, config):
@@ -249,11 +178,11 @@ def consume(topic, config):
 
         image_file, num_bytes = create_img(gbt_data.target)
 
-        image_path = save_image_to_seaweedfs(gbt_data.target, image_file, dsocEvent.uuid)
+        image_key = save_image_to_seaweedfs(gbt_data.target, image_file, dsocEvent.uuid)
 
-        publish_DB(image_path, num_bytes, data)
+        publish_DB(image_key, num_bytes, data)
 
-        print(f"Received message from {data.station}; DDM is ready in SeaweedFS (Image Path: {data.image_file}).")
+        print(f"Received message from {data.station}; DDM is ready in SeaweedFS (Image Path: {data.image_key}).")
 
         ''' Previous code using old functions:
         #create the rest of the column values specific to DSOC/images:

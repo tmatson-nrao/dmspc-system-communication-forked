@@ -36,7 +36,7 @@ class ObservatoryEvent(models.Model):
         blank=True, null=True
     )
     
-    image_url = models.URLField(max_length=500, default="") 
+    image_key = models.CharField(max_length=500, blank=True, null=True)
     num_bytes = models.IntegerField(blank=True, null=True)
     latency_ms = models.FloatField(default=0.0)
 
@@ -62,11 +62,14 @@ class dsocEvent(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     object_id = models.CharField(max_length=100)
     target = models.CharField(max_length=100)
-    image_url = models.URLField(max_length=500, default="") 
+    image_key = models.CharField(max_length=500, blank=True, null=True)
     num_bytes = models.IntegerField()
+    event_time = models.DateTimeField()
+    latency_ms = models.FloatField(default=0.0)
 
     def __str__(self):
         return f"DSOC Event: {self.object_id} | {self.event_time}"
+
     
 
 class uiEvent(models.Model):

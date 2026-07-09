@@ -4,17 +4,17 @@
     <div class="col-12 col-md-6">
       <div class="border rounded p-3 bg-white">
         <h5 class="mb-2">Target:</h5>
-        <p class="mb-0"> {{ latest_event.target }} </p>
+        <p class="mb-0"> {{ gbt_event.target }} </p>
       </div>
 
       <div class="border rounded p-3 bg-white mt-4">
         <h5 class="mb-2">Object ID:</h5>
-        <p class="mb-0"> {{ latest_event.object_id }} </p>
+        <p class="mb-0"> {{ gbt_event.object_id }} </p>
       </div>
       
       <div class="border rounded p-3 bg-white mt-4">
         <h5 class="mb-2">Message Time (UTC):</h5>
-        <p class="mb-0"> {{ latest_event.event_time|date:"F d Y H:i:s" }} </p>
+        <p class="mb-0"> {{ gbt_event.event_time|date:"F d Y H:i:s" }} </p>
       </div>
 
       <!-- add more rows as needed -->
@@ -23,21 +23,13 @@
     <!-- Right column -->
     <div class="col-12 col-md-6">
       <div class="border rounded p-3 bg-white">
-        <h5 class="mb-2">Input new waveform:</h5>
-        <form action="{% url 'submit_waveform' %}" method="POST">
-          {% csrf_token %}
-          <input type="text" name="waveform" placeholder="e.g. W45" class="form-control mb-2">
-        </form>
-      </div>
-
-      <div class="border rounded p-3 bg-white mt-4">
         <h5 class="mb-2">Transmitted Waveform:</h5>
-        <p class="mb-0">{{ latest_event.tx_waveform }}</p>
+        <p class="mb-0">{{ gbt_event.tx_waveform }}</p>
       </div>
 
       <div class="border rounded p-3 bg-white mt-4">
         <h5 class="mb-2">Recorded Waveform:</h5>
-        <p class="mb-0"> {{ latest_event.rec_waveform }} </p>
+        <p class="mb-0"> {{ gbt_event.rec_waveform }} </p>
       </div>
 
       <!-- add more rows as needed -->
