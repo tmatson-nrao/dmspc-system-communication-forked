@@ -17,5 +17,5 @@ urlpatterns = [
 
     path('submit-waveform/', views.submit_waveform, name='submit_waveform'),
 
-    path('new_observation/',views.create_observation, name='create_new_observation')
+    path('new_observation/',views.create_observation, name='create_new_observation'),
 ]
