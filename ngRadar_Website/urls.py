@@ -16,4 +16,6 @@ urlpatterns = [
     path('dashboard/image/<int:event_id>/', views.serve_image, name ='serve_image'),
 
     path('submit-waveform/', views.submit_waveform, name='submit_waveform'),
+
+    path('new_observation/',views.create_observation, name='create_new_observation')
 ]

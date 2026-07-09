@@ -79,6 +79,10 @@ def live_dashboard(request):
     context = get_latest_event()
     return render(request, 'ngRadar_Website/index.html', context)
 
+def create_observation(request):
+    # this is the initial view to load the newObservation page
+    return render(request, 'ngRadar_Website/newObservation.html')
+
 def get_Message_Latency():
     last_message_latency_str = str(ObservatoryEvent.objects.last().latency_ms)
     last_message_time_str = str(ObservatoryEvent.objects.last().event_time)
