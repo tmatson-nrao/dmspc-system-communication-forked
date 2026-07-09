@@ -88,19 +88,6 @@ def serve_image(request, event_id):
     )
 
 
-
-def get_file_from_seaweedfs(image_url):
-    import requests
-    # Retrieve the image from SeaweedFS using the image URL
-    seaweedfs_url = f"{image_url}"
-
-    try:
-        image = requests.get(seaweedfs_url)
-        image.raise_for_status()  # Raise an error for bad responses (4xx or 5xx)
-        return image.content  # Return the binary content of the image
-    except requests.RequestException as e:
-        print(f"Error fetching image from SeaweedFS: {e}")
-        raise Http404("Image not found.")
     
 
 # Need a function AND another partial template for handling the user inputted payload
