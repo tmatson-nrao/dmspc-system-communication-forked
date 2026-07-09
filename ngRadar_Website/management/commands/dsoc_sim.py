@@ -10,6 +10,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import io
 from ngRadar_Website.models.models import gbtEvent, dsocEvent
+from pathlib import Path
+from ngRadar_Website.enums import Stations
+import time
+from botocore.exceptions import EndpointConnectionError
 # from django.db import close_old_connections
 
 """
@@ -19,14 +23,25 @@ This code will:
 - load the image data + the uuid into the DB
 """
 
-load_dotenv()  # loads .env from current working dir
+load_dotenv()  # Load environment variables from .env file
 
+p = Path("../../../../out/ngrok_endpoint.env")
+text = p.read_text().strip()
+
+bootstrap = None
+for line in text.splitlines():
+    if line.startswith("BOOTSTRAP_SERVER="):
+        bootstrap = line.split("=", 1)[1].strip()
+        break
+
+if not bootstrap:
+    raise RuntimeError("BOOTSTRAP_SERVER not found in /out/ngrok_endpoint.env")
 
 config = {
-    "bootstrap.servers": os.environ["BOOTSTRAP_SERVER"],
+    "bootstrap.servers": bootstrap,
     "fetch.max.bytes": 8388608,
     "session.timeout.ms": 45000,
-    "client.id": "universal-consumer",
+    "client.id": "dsoc-consumer",
     "group.id": "consumer-group",
     "auto.offset.reset": "earliest",
   }
@@ -49,28 +64,20 @@ def latency_calc(event_time):
 '''
 
 
-
 def DB_import(uuid):
     
-  gbt_data = gbtEvent.objects.filter(uuid=uuid).values_list('uuid', 'target', 'tx_waveform', 'event_time', 'latency_ms').first()
+  gbt_data = gbtEvent.objects.filter(uuid=uuid).values_list('uuid', 'object_id', 'target', 'tx_waveform', 'event_time', 'latency_ms').first()
 
   return gbt_data
 
 
-
-
-def DB_columns():
+def DB_columns(gbt_data):
   #defines the column values specific to DSOC/images
 
-    station = random.choice([9, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99])  #randomly selects a station from the list of stations
-
     data = {
-        "product_type": "DDM",
-        "product_id": f"DDM{random.randint(1000,9999)}",
-        "station": station,
-        "created_at": datetime.now() - timedelta(seconds=10),
-        "xmit_station": "GBT",
-        "rcvr_station": station,
+        "event_time": datetime.now() - timedelta(seconds=5),
+        "object_id": gbt_data[1],  # object_id
+        "target": gbt_data[2],  # target
     }
 
     return data
@@ -84,9 +91,6 @@ def publish_DB(image_key, num_bytes, data):
   })
 
   try:
-          close_old_connections()
-          # close_old_connections()
-
           dsocEvent.objects.create(**data)
           msg = "Payload saved to database successfully."
 
@@ -139,17 +143,27 @@ def save_image_to_seaweedfs(target, image_file, uuid):
 
     image_key = f"ddm/{target}/{uuid}.png"
 
-    try:
-        s3.put_object(Bucket=os.environ.get('WEED_S3_BUCKET'), Key=image_key, Body=image_file)
-        print(f"Image saved to SeaweedFS at {image_key}")
-        image_url = (
-            f"{os.environ['WEED_S3_DOMAIN']}/"
-            f"{os.environ['WEED_S3_BUCKET']}/"
-            f"{image_key}"
-        )
-    except NoCredentialsError:
-        print("Credentials not available for SeaweedFS S3.")
-    
+    for attempt in range(5):
+      print("attempting...")
+      try:
+          if hasattr(image_file, 'read'):
+              image_file.seek(0) # Reset stream pointer to the beginning of the file
+              file_data = image_file.read()
+          else:
+              file_data = image_file
+          s3.put_object(
+              Bucket=os.environ.get('WEED_S3_BUCKET'),
+              Key=image_key,
+              Body=file_data,
+              ContentType='image/png'
+          )
+          break
+      except EndpointConnectionError:
+            if attempt == 4:
+                raise
+            time.sleep(2)
+      print(f"Success: Image saved to SeaweedFS at {image_key}") #TODO: might need to re-indent this back into except
+
     return image_key
 
 
@@ -178,16 +192,16 @@ def consume(topic, config):
         gbt_data = DB_import(uuid)
 
         #create the rest of the column values specific to DSOC/images:
-        data = DB_columns()
+        data = DB_columns(gbt_data)
 
-        uuid, target, tx_waveform, event_time, latency_ms = gbt_data
+        uuid, object_id, target, tx_waveform, event_time, latency_ms = gbt_data
         image_file, num_bytes = create_img(tx_waveform)
 
-        image_key = save_image_to_seaweedfs(gbt_data.target, image_file, dsocEvent.uuid)
+        image_key = save_image_to_seaweedfs(target, image_file, uuid)
 
         publish_DB(image_key, num_bytes, data)
 
-        print(f"Received message from {data.station}; DDM is ready in SeaweedFS (Image Path: {data.image_key}).")
+        print(f"Received message from {Stations.GBT.label}; DDM is ready in SeaweedFS (Image Path: {data['image_key']}).")
 
         ''' Previous code using old functions:
         #create the rest of the column values specific to DSOC/images:
@@ -204,7 +218,8 @@ def consume(topic, config):
     pass
   finally:
     #closes the consumer connection
-    consumer.close()
+    print("reached the end")
+    #consumer.close()
 
 
 class Command(BaseCommand):
