@@ -19,7 +19,6 @@ from confluent_kafka import Producer
 import os 
 import uuid
 from datetime import datetime, timezone 
-from confluent_kafka import Producer
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
@@ -41,8 +40,11 @@ def login_view(request):
         else:
             messages.error(request, "Invalid username or password.")
             return render(request, 'registration/login.html')
-            
-    return render(request, 'registration/login.html')
+        
+    response = render(request, 'registration/login.html')
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        
+    return response 
 
 
 #import the producer
@@ -129,7 +131,7 @@ def submit_waveform(request):
     if request.method == "POST":
         uuid_input = uuid.uuid4()
         waveform  = request.POST.get('waveform')
-        timestamp = datetime.now()
+        timestamp = datetime.now(timezone.utc)
         # Database version
         ui_Event = uiEvent.objects.create(
             uuid = uuid_input,

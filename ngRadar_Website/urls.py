@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import views
+from django.contrib.auth.views import LogoutView
 
 urlpatterns = [
     # Have not tested if this works as expected
@@ -17,5 +18,9 @@ urlpatterns = [
 
     path('submit-waveform/', views.submit_waveform, name='submit_waveform'),
 
+    # path to blank page where we will allow new observations to be created
     path('new_observation/',views.create_observation, name='create_new_observation'),
+    
+    # add logout path 
+    path('logout/', LogoutView.as_view(next_page='login'), name='logout')
 ]
