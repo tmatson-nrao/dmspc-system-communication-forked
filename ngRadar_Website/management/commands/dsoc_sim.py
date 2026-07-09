@@ -74,10 +74,10 @@ def DB_columns():
     return data
 
 
-def publish_DB(image_url, num_bytes, data):
+def publish_DB(image_key, num_bytes, data):
   #saves the image path to the database
   data.update({
-      "image_url": image_url,
+      "image_key": image_key,
       "num_bytes": num_bytes
   })
 
