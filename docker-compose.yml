@@ -171,6 +171,23 @@ services:
         python manage.py gbt_sim
 
 
+
+  worker2:
+    build: .
+    command: python manage.py dsoc_sim
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - broker
+    volumes:
+      - .:/service
+    networks:
+      - ngradar_website_network
+    profiles:
+      - kafka
+  
+  
   seaweedfs:
     build: 
       context: .
