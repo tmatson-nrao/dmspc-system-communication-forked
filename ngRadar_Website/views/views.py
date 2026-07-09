@@ -67,8 +67,8 @@ def latency_graphing(request):
 
 
 def serve_image(request, event_id):
-    # Fetch image file url from ObservatoryEvent table and query the image from the SeaweedFS server
-    # to render image in the browser when clicked on the image link in the observatory events table
+    # Fetch image file key from ObservatoryEvent table and query the image from the SeaweedFS server
+    # to render image in website
     obs_event = ObservatoryEvent.objects.get(uuid=event_id)
 
     s3 = boto3.client(
