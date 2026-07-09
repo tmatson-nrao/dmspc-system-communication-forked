@@ -8,9 +8,8 @@ from ngRadar_Website.enums import Stations
 
 
 class ObservatoryEvent(models.Model):
-    # Mapping to your payload variables
+    # History table for all events from both gbtEvent and dsocEvent tables
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    gbt_uuid = models.UUIDField(blank=True, null=True)
     object_id = models.CharField(max_length=100)
     target = models.CharField(max_length=100)
     tx_waveform = models.CharField(max_length=100, blank=True, null=True)
@@ -37,7 +36,7 @@ class ObservatoryEvent(models.Model):
         blank=True, null=True
     )
     
-    image_url = models.URLField(max_length=500) 
+    image_url = models.URLField(max_length=500, default="") 
     num_bytes = models.IntegerField(blank=True, null=True)
     latency_ms = models.FloatField(default=0.0)
 
@@ -63,7 +62,7 @@ class dsocEvent(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     object_id = models.CharField(max_length=100)
     target = models.CharField(max_length=100)
-    image_url = models.URLField(max_length=500) 
+    image_url = models.URLField(max_length=500, default="") 
     num_bytes = models.IntegerField()
 
     def __str__(self):
