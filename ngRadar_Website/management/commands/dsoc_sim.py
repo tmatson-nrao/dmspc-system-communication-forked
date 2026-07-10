@@ -70,7 +70,7 @@ def DB_columns(gbt_data):
   #defines the column values specific to DSOC/images
 
     data = {
-        "event_time": datetime.now(),
+        "event_time": datetime.now(timezone.utc),
         "object_id": gbt_data[1],  # object_id
         "target": gbt_data[2],  # target
     }
@@ -187,16 +187,16 @@ def consume(topic, config):
 
         uuid, object_id, target, tx_waveform, event_time, latency_ms = gbt_data
 
+        image_file, num_bytes = create_img(tx_waveform)
+
+        image_key = save_image_to_seaweedfs(target, image_file, uuid)
+
         #calculate latency with event_time from the GBT import, before we update the event_time value in DB_columns
         dsoc_latency = latency_calc(event_time)
 
         #create the rest of the column values specific to DSOC/images:
         data = DB_columns(gbt_data)
         data['latency_ms'] = dsoc_latency
-
-        image_file, num_bytes = create_img(tx_waveform)
-
-        image_key = save_image_to_seaweedfs(target, image_file, uuid)
 
         publish_DB(image_key, num_bytes, data)
 

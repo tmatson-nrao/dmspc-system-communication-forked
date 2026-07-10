@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 from django.core.management.base import BaseCommand
 from confluent_kafka import Producer
@@ -68,20 +68,21 @@ consumer_config = {
 }
 
 
-def set_payload_dict(waveform):
+def set_payload_dict(waveform, event_time):
     payload["object_id"] = '30104'
     payload["target"] = 'Moretus'
     payload["tx_waveform"] = waveform
     payload["rec_waveform"] = waveform
-    payload["event_time"] = datetime.now()
-    payload["latency_ms"] = latency_calc(payload["event_time"])
+    payload["event_time"] = datetime.now(timezone.utc)
+    payload["latency_ms"] = latency_calc(payload["event_time"], event_time)
 
 
-def latency_calc(event_time):
+def latency_calc(gbt_event_time, ui_event_time):
     # calculates the latency of the message from the time it was sent to the time it was received
     # returns latency in milliseconds
-    current_time = datetime.now()
-    latency = current_time - event_time
+    if ui_event_time == -1:
+        return 0
+    latency = gbt_event_time - ui_event_time
     latency_ms = latency.total_seconds() * 1000
     return latency_ms
 
@@ -89,7 +90,7 @@ def latency_calc(event_time):
 def generate_payload(ui_event_uuid):
     ui_event = uiEvent.objects.get(uuid=ui_event_uuid)
 
-    set_payload_dict(ui_event.selected_waveform)
+    set_payload_dict(ui_event.selected_waveform, ui_event.event_time)
 
 
 def publish_to_db():
@@ -156,7 +157,7 @@ class Command(BaseCommand):
         print("Starting GBT simulator")
 
         # generate a dummy data payload, publish this data to the db, produce a message with this payload, then start consuming
-        set_payload_dict('W48')
+        set_payload_dict('W48', -1)
         gbt_uuid = publish_to_db()
         key, value = f"{gbt_uuid}", "GBT transmitting"
         produce(producer_topic, producer_config, key, value)

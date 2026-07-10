@@ -5,8 +5,8 @@ from django.contrib.auth.views import LogoutView
 urlpatterns = [
     # Home page URLs
     path('home/', views.home_view, name='home'),
-    path('home/gbt_events/', views.gbt_event_partial, name='gbt_events'),
-    path('home/dsoc_events/', views.dsoc_event_partial, name='dsoc_events'),
+    path('home/', views.gbt_event_partial, name='gbt_events'),
+    path('home/', views.dsoc_event_partial, name='dsoc_events'),
     path('submit-waveform/', views.submit_waveform, name='submit_waveform'),
 
     # Dashboard page URLs
