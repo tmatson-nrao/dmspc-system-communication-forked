@@ -15,7 +15,6 @@ from pathlib import Path
 from ngRadar_Website.enums import Stations
 import time
 from botocore.exceptions import EndpointConnectionError
-from django.utils import timezone
 
 
 """
@@ -190,7 +189,7 @@ def consume(topic, config):
             gbt_data = DB_import(gbt_uuid)
 
             #calculate latency with event_time from the GBT import, before we update the event_time value in DB_columns
-            dsoc_latency = latency_calc(gbt_data['event_time'])
+            dsoc_latency = latency_calc(gbt_data[3])
 
             #create the rest of the column values specific to DSOC/images:
             data = DB_columns(gbt_data)
