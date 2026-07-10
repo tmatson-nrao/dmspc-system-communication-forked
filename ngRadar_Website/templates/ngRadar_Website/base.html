@@ -13,11 +13,7 @@
   <link rel="stylesheet" href="{% static 'ngRadar_Website/css/styleguide.css' %}">
   <link rel="stylesheet" href="{% static 'ngRadar_Website/css/style.css' %}">
 
-  <!-- Direct links to stylesheets - comment in if we need them
-  <link rel="stylesheet" href="../../static/ngRadar_Website/css/globals.css">
-  <link rel="stylesheet" href="../../static/ngRadar_Website/css/styleguide.css">
-  <link rel="stylesheet" href="../../static/ngRadar_Website/css/style.css"> -->
-
+<!-- Links to icons. Compatiable with most browsers -->
   <link rel="icon" type="image/x-icon" href="{% static 'ngRadar_Website/images/favicon/favicon.ico' %}">
   <link rel="apple-touch-icon" sizes="180x180" href="{% static 'ngRadar_Website/images/favicon/apple-touch-icon.png' %}">
   <link rel="manifest" href="{% static 'ngRadar_Website/images/favicon/site.webmanifest' %}">
@@ -51,11 +47,11 @@
       <!-- LEFT NAV -->
         <nav class="p-3 border-end" style="min-width: 220px;" aria-label="Primary">
         <div class="d-grid gap-2">
-            <button onclick="window.location.href='/index/'" class="btn btn-dark" type="button">
-            Live Dashboard
+            <button onclick="window.location.href='/home/'" class="btn btn-dark" type="button">
+            Home
             </button>
             <button onclick="window.location.href='/dashboard/'" class="btn btn-dark" type="button">
-            History
+            History Events Table
             </button>
             <button class="btn btn-dark" type="button">
             PRDX Files
@@ -70,7 +66,6 @@
             </button>
         </div>
         </nav>
-        {% include 'ngRadar_Website/partials/nav.html' %}
 
 
       <!-- RIGHT CONTENT -->
