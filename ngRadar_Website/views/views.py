@@ -49,6 +49,11 @@ def get_obs_events():
 
 
 
+# Keep as a placeholder when we develop this feature.
+# def create_observation(request):
+#     # this is the initial view to load the newObservation page
+#     return render(request, 'ngRadar_Website/newObservation.html')
+
 def get_Message_Latency():
     last_message_latency_str = str(ObservatoryEvent.objects.last().latency_ms)
     last_message_time_str = str(ObservatoryEvent.objects.last().event_time)
@@ -147,6 +152,7 @@ def submit_waveform(request):
 #====================================================
 
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True) #Desmond's Auth token fix - comment if we decide not to use
 def login_view(request):
     if request.method == 'POST':
         username_input = request.POST['username']
@@ -162,11 +168,10 @@ def login_view(request):
             messages.error(request, "Invalid username or password.")
             return render(request, 'registration/login.html')
         
-            # response = render(request, 'registration/login.html')
-            # response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-                
-            # return response 
-            
+    # Tung's auth token fix - uncomment if we decide to use this
+    # response = render(request, 'registration/login.html')
+    # response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+
     return render(request, 'registration/login.html')
 
 
