@@ -178,12 +178,8 @@ def login_view(request):
 @login_required
 def home_view(request):
     # this is the view for the homepage, which will display the most recent observatory event
-    latest_events = get_obs_events()['latest_events']
-    most_recent_event = latest_events.first() if latest_events else None
-    context = {
-        'latest_event': most_recent_event
-    }
-    return render(request, 'ngRadar_Website/home.html', context)
+    
+    return render(request, 'ngRadar_Website/home.html', get_obs_events())
 
 
 @login_required
