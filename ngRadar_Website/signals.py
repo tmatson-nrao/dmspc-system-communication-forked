@@ -23,7 +23,6 @@ def create_observatory_from_gbt(sender, instance, created, **kwargs):
         rec_waveform=instance.rec_waveform,
         event_time=instance.event_time,
         latency_ms=instance.latency_ms,
-        station=Stations.GBT,
     )
 
 
@@ -37,9 +36,8 @@ def create_observatory_from_dsoc(sender, instance, created, **kwargs):
     ObservatoryEvent.objects.create(
         object_id=instance.object_id,
         target=instance.target,
-        image_url=instance.image_url,
+        image_key=instance.image_key,
         num_bytes=instance.num_bytes,
         event_time=instance.event_time,
         latency_ms=instance.latency_ms,
-        station=Stations.DSOC,
     )
