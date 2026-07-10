@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-import os
+import os, time
 from django.core.management.base import BaseCommand
 from confluent_kafka import Producer
 from confluent_kafka import Consumer
@@ -83,7 +83,7 @@ def latency_calc(gbt_event_time, ui_event_time):
     if ui_event_time == -1:
         return 0
     latency = gbt_event_time - ui_event_time
-    latency_ms = latency.total_seconds() * 1000
+    latency_ms = latency.total_seconds() * 1000 - 5000
     return latency_ms
 
 
@@ -91,6 +91,21 @@ def generate_payload(ui_event_uuid):
     ui_event = uiEvent.objects.get(uuid=ui_event_uuid)
 
     set_payload_dict(ui_event.selected_waveform, ui_event.event_time)
+
+
+def turn_off_transmitter():
+    gbtEvent.objects.create(
+        **
+        {
+            "object_id": '30104', 
+            "target": 'Moretus', 
+            "tx_waveform": 'Tx_OFF', 
+            "rec_waveform": 'Tx_OFF', 
+            "event_time": datetime.now(timezone.utc), 
+            "latency_ms": 0,
+        }
+    )
+    time.sleep(5)
 
 
 def publish_to_db():
@@ -131,6 +146,9 @@ def consume(topic, config):
 
             ui_uuid = msg.key().decode("utf-8")  # this is the uuid of the ui_event
             notif = msg.value().decode("utf-8")
+
+            # turn off the transmitter for 5 seconds
+            turn_off_transmitter()
 
             # fill in the values to be published to the db
             generate_payload(ui_uuid)
