@@ -100,13 +100,13 @@ def create_img(tx_waveform):
     matplotlib.use('Agg')  # Use a non-interactive backend for matplotlib
         
     #generating random data and formatting the graph:
-    x_data = np.random.uniform(-30, 30, 20)
-    y_data = np.random.uniform(-300, 300, 20)
+    x_data = np.random.uniform(-30, 30, 40)
+    y_data = np.random.uniform(-300, 300, 40)
 
-    plt.scatter(x_data, y_data)
+    plt.scatter(x_data, y_data, color='red')
     plt.axhline(0, color='black', linewidth=0.5)
     plt.axvline(0, color='black', linewidth=0.5)
-    plt.title(f"DDM for {tx_waveform}")
+    plt.title(f"DDM for {tx_waveform}", size=20)
     plt.xlabel("Doppler Freq (Hz)")
     plt.ylabel("Range (km)")
     plt.grid(True)
