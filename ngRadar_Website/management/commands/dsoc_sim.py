@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from PIL import Image
 from django.core.management.base import BaseCommand
 from confluent_kafka import Consumer
@@ -49,19 +49,14 @@ config = {
 
 topic = ["GBT_data"]  #consumes from the GBT's topic
 
-''' We aren't currently calculating latency at this step
-We have to decide how to implement latency in addition to having a simulated delay
-
 def latency_calc(event_time):
   #calculates the latency of the message from the time it was sent to the time it was received
   #returns latency in milliseconds
 
-  event_time = datetime.strptime(event_time, "%Y-%m-%d %H:%M:%S.%f")
-  current_time = datetime.now()
+  current_time = datetime.now(timezone.utc)
   latency = current_time - event_time
   latency_ms = latency.total_seconds() * 1000
   return latency_ms
-'''
 
 
 def DB_import(uuid):
@@ -144,7 +139,6 @@ def save_image_to_seaweedfs(target, image_file, uuid):
     image_key = f"ddm/{target}/{uuid}.png"
 
     for attempt in range(5):
-      print("attempting...")
       try:
           if hasattr(image_file, 'read'):
               image_file.seek(0) # Reset stream pointer to the beginning of the file
@@ -191,10 +185,15 @@ def consume(topic, config):
         #use the uuid from the payload to import the correct line of data from the GBT table:
         gbt_data = DB_import(uuid)
 
+        uuid, object_id, target, tx_waveform, event_time, latency_ms = gbt_data
+
+        #calculate latency with event_time from the GBT import, before we update the event_time value in DB_columns
+        dsoc_latency = latency_calc(event_time)
+
         #create the rest of the column values specific to DSOC/images:
         data = DB_columns(gbt_data)
+        data['latency_ms'] = dsoc_latency
 
-        uuid, object_id, target, tx_waveform, event_time, latency_ms = gbt_data
         image_file, num_bytes = create_img(tx_waveform)
 
         image_key = save_image_to_seaweedfs(target, image_file, uuid)
