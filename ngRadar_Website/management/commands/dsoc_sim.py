@@ -70,7 +70,7 @@ def DB_columns(gbt_data):
   #defines the column values specific to DSOC/images
 
     data = {
-        "event_time": datetime.now() - timedelta(seconds=5),
+        "event_time": datetime.now(),
         "object_id": gbt_data[1],  # object_id
         "target": gbt_data[2],  # target
     }
