@@ -76,10 +76,10 @@ def latency_graphing(request):
 
 
 
-def serve_image(request, event_id):
+def serve_image(image_key):
     # Fetch image file key from ObservatoryEvent table and query the image from the SeaweedFS server
     # to render image in website
-    obs_event = ObservatoryEvent.objects.get(uuid=event_id)
+    obs_event = ObservatoryEvent.objects.get(image_key=image_key)
 
     s3 = boto3.client(
         's3',
@@ -88,14 +88,15 @@ def serve_image(request, event_id):
         aws_secret_access_key=os.environ.get('WEED_S3_SECRET_KEY')
     )
     
-    response = s3.get_object(
+    image = s3.get_object(
         Bucket=os.environ.get('WEED_S3_BUCKET'),
         Key=obs_event.image_key
     )
-    return HttpResponse(
-        response["Body"].read(),
-        content_type=response["ContentType"],
-    )
+    # return HttpResponse(
+    #     response["Body"].read(),
+    #     content_type=response["ContentType"],
+    # )
+    return image
 
     
 
@@ -203,10 +204,16 @@ def event_table_partial(request):
 
 def dsoc_event_partial(request, event_id):
     # this is the partial template view for latest dsoc event images on home page
+    obs_event = get_obs_events
+    image = serve_image(obs_event.dsoc_event.image_key)
+    context = [
+        image,
+        obs_event
+    ]
     return render(
         request,
         "ngRadar_Website/partials/dsoc_home_partial.html",
-        get_obs_events(), 
+        context, 
     )
 
 
