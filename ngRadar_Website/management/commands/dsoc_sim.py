@@ -202,16 +202,6 @@ def consume(topic, config):
 
         print(f"Received message from {Stations.GBT.label}; DDM is ready in SeaweedFS (Image Path: {data['image_key']}).")
 
-        ''' Previous code using old functions:
-        #create the rest of the column values specific to DSOC/images:
-        product_type, product_id, station,created_at, xmit_station, rcvr_station = DB_columns()
-
-        publish_DB(uuid, product_type, product_id, station, created_at, xmit_station, rcvr_station, image_file, num_bytes)
-        '''
-        #unique = hashlib.sha256(str(value['Image']).encode('utf-8')).hexdigest()
-        #filename = f"{value['Type']}-{value['Image_ID']}-{value['Timestamp']}-{unique:.15}.png"
-        #print(f"Image saved as {filename}")
-
 
   except KeyboardInterrupt: 
     pass
