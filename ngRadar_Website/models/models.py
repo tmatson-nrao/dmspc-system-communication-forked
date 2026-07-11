@@ -25,15 +25,16 @@ class ObservatoryEvent(models.Model):
     created_at = models.DateTimeField(blank=True, null=True) 
 
     # This allows us to track the transmitter and receiver stations for each event
-    xmit_station = models.CharField(
-        max_length=100, 
-        choices=Stations.choices, 
-        blank=True, null=True
+    xmit_station = models.IntegerField(
+    choices=Stations.choices,
+    blank=True,
+    null=True,
     )
-    rcvr_station = models.CharField(
-        max_length=100, 
-        choices=Stations.choices, 
-        blank=True, null=True
+
+    rcvr_station = models.IntegerField(
+        choices=Stations.choices,
+        blank=True,
+        null=True,
     )
     
     image_key = models.CharField(max_length=500, blank=True, null=True)

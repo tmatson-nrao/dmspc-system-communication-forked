@@ -13,13 +13,9 @@ urlpatterns = [
     path('dashboard/', views.dashboard_view, name='dashboard_home'),
     path('dashboard/updates', views.event_table_partial, name='event_table_update'),
     path('dashboard/latency', views.latency_graphing, name='latency_graphing'),
-    path('dashboard/image', views.serve_image, name ='serve_image'),
+    path("image/<uuid:uuid>/", views.serve_image, name="serve_image"),
 
-
-    # Keep as placeholder when we develop this
-    # # path to blank page where we will allow new observations to be created
-    # path('new_observation/',views.create_observation, name='create_new_observation'),
     
-    # add logout path 
+    # logout path 
     path('logout/', LogoutView.as_view(), name='logout')
 ]
