@@ -23,14 +23,15 @@
                         <td>{{ latest_event.target}}</td>
                         <td>
                             {% if latest_event.xmit_station %}
-                                <span class="text-muted">{{ latest_event.xmit_station }}</span>
+                                <span class="text-muted">{{ latest_event.get_xmit_station_display }}</span>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
+
                         <td>
                             {% if latest_event.rcvr_station %}
-                                <span class="text-muted">{{ latest_event.rcvr_station }}</span>
+                                <span class="text-muted">{{ latest_event.get_rcvr_station_display }}</span>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
@@ -50,9 +51,10 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if latest_event.image_url %}
-                                <!-- Clicking this link opens the original image in a new browser tab -->
-                                <a href="{% url 'serve_image' latest_event.uuid %}" target="_blank">View {{ latest_event.product_type }} image ({{ latest_event.product_id }})</a>
+                            {% if latest_event.image_key %}
+                                <a href="{% url 'serve_image' latest_event.uuid %}" target="_blank">
+                                    View image
+                                </a>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
