@@ -34,7 +34,7 @@ def get_obs_events():
     """Helper function to keep data uniform across view updates"""
 
     latest_events = ObservatoryEvent.objects.order_by("-event_time")
-    
+    ui_event = uiEvent.objects.order_by("-event_time")
     # Calculate the average latency of the last 20 records
     latest_20 = latest_events[:20]
     avg_latency = latest_20.aggregate(Avg('latency_ms'))['latency_ms__avg'] or 0
@@ -42,6 +42,7 @@ def get_obs_events():
     return {
         'latest_events': latest_events,
         'latest_event': latest_events.first() if latest_events else None,
+        'ui_event': ui_event.first() if ui_event else None,
         'gbt_event': latest_events.filter(station=Stations.GBT).order_by('-event_time').first(), # only care about the latest event for home gbt partial
         'dsoc_event': latest_events.filter(station=Stations.DSOC).order_by('-event_time').first(), # only care about the latest event for home dsoc partial
         'avg_latency': round(avg_latency, 2)
@@ -200,6 +201,15 @@ def event_table_partial(request):
     return render(
         request,
         "ngRadar_Website/partials/dashboard_updates.html",
+        get_obs_events(),
+    )
+
+def status_partial(request):
+    # this is the partial template view for the status box on the home page
+
+    return render(
+        request,
+        "ngRadar_Website/partials/status_partial.html",
         get_obs_events(),
     )
 
