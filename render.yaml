@@ -1,0 +1,42 @@
+# Link the shared dashboard environment variables globally
+envVarGroups:
+  - name: ngradar-demo-env
+
+services:
+  # 1. SeaweedFS Service
+  - type: web
+    name: seaweedfs
+    env: docker
+    plan: free
+    dockerContext: .
+    dockerfilePath: seaweed.Dockerfile
+    envVars:
+      - key: APP_ENV
+        sync: false # Tells Render to look inside the linked envVarGroup
+      - key: WEED_S3_DOMAIN
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+
+  # 2. Your Website Service
+  - type: web
+    name: ngradar-website
+    env: docker
+    plan: free
+    dockerContext: .
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: PORT
+        value: "8000" # Required by Render to open your website port
+      - key: APP_ENV
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: WEED_S3_BUCKET
+        sync: false
+      - key: S3_ENDPOINT_URL
+        sync: false

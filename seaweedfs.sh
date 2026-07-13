@@ -1,22 +1,24 @@
 #!/bin/sh
 
-# This is the entrypoint script for the SeaweedFS container. It detects the environment (Render vs Local) and configures the S3 domain and ports accordingly.
-
-# 1. Detect if running on Render vs Local
+# Detect if running on Render vs Local
 if [ -n "$RENDER" ] || [ "$APP_ENV" = "demo" ]; then
     echo "--- Demo Cloud Environment Detected ---"
-    # Fallback syntax uses :- instead of ://
-    S3_DOMAIN="${WEED_S3_DOMAIN:-https://system-communication-prototype.onrender.com/}" 
+    S3_DOMAIN="${WEED_S3_DOMAIN:-system-communication-prototype.onrender.com}"
+
+    # CRITICAL: On Render, force the S3 Gateway to use Render's dynamic $PORT
+    if [ -n "$PORT" ]; then
+        echo "Render $PORT detected: Overriding S3 port to $PORT"
+        S3_PORT=$PORT
+    else
+        S3_PORT=${WEED_S3_PORT:-8333}
+    fi
 else
     echo "--- Local Development Environment Detected ---"
     S3_DOMAIN="localhost"
+    S3_PORT=${WEED_S3_PORT:-8333} # Uses local .env variable or 8333 fallback
 fi
 
-# Bind to 0.0.0.0 so other containers in the docker network can connect
-BIND_IP="0.0.0.0" 
-
-# 2. Extract or fallback to configured ports
-S3_PORT=${WEED_S3_PORT:-8333}
+BIND_IP="0.0.0.0"
 FILER_PORT=${WEED_FILER_PORT:-8888}
 
 echo "Binding IP  : $BIND_IP"
@@ -24,10 +26,11 @@ echo "S3 Domain   : $S3_DOMAIN"
 echo "S3 Port     : $S3_PORT"
 echo "Filer Port  : $FILER_PORT"
 
-# 3. Boot SeaweedFS 
+# Boot SeaweedFS
+# Changed -dir to /tmp for Render Free Tier to avoid permission errors without volumes
 exec weed server \
   -ip="$BIND_IP" \
-  -dir="/data" \
+  -dir="/tmp" \
   -s3 \
   -s3.domainName="$S3_DOMAIN" \
   -s3.port="$S3_PORT" \
