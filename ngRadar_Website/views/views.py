@@ -105,8 +105,13 @@ def serve_image(request, uuid):
 
 # Function for lock down user 
 def lock_status(request):
-    is_locked = cache.get('submit_locked', False)
-    return JsonResponse({'locked': is_locked})
+    lock_time = cache.get('submit_locked', None)
+    if lock_time is None:
+        return JsonResponse({"locked": False})
+    elif ObservatoryEvent.objects.filter(event_time__gt=lock_time):
+        cache.delete('submit_locked')
+        return JsonResponse({'locked':False})
+    return JsonResponse({'locked':True})
 
 # Need a function AND another partial template for handling the user inputted payload
 def submit_waveform(request):
@@ -152,6 +157,7 @@ def submit_waveform(request):
             produce(topic, config, key, value)
         main()
         
+        cache.set('submit_locked', datetime.now(timezone.utc))
     return redirect('home')
 
 
