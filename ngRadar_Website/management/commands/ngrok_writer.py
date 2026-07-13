@@ -13,7 +13,7 @@ text = p.read_text().strip()
 bootstrap = None
 for line in text.splitlines():
     if line.startswith("BOOTSTRAP_SERVER="):
-        bootstrap = line.split("=", 1)[1].strip()
+        bootstrap = f"{line.split('=', 1)[1].strip()}"
         break
 
 if not bootstrap:
@@ -24,7 +24,7 @@ if not bootstrap:
 def publish_DB(bootstrap):
 
     try:
-        record = ngrok_endpoint.objects.create(bootstrap)
+        record = ngrok_endpoint.objects.create(bootstrap=bootstrap)
         print("Endpoint saved to database successfully.")
         return record  # <-- Return the actual object record
 

@@ -89,7 +89,7 @@ def publish_DB(image_key, num_bytes, data):
 
     try:
         # Create and capture the instantiated record model
-        time.sleep(5)
+        time.sleep(3)
         record = dsocEvent.objects.create(**payload_data)
         print("Payload saved to database successfully.")
         return record  # <-- Return the actual object record
