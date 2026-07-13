@@ -1,6 +1,6 @@
 {% extends 'ngRadar_Website/base.html' %}
 
-{% block title %}Live Dashboard{% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block content %}
 
@@ -41,9 +41,22 @@
 
 </div>
 
+<!-- Polls the Django views every 5 seconds to refresh partials -->
+<div id="home-gbt-partial" 
+             hx-get="{% url 'gbt_events' %}" 
+             hx-trigger="every 5s" 
+             hx-target="#home-gbt-partial"
+             class="w-100">
+            {% include 'ngRadar_Website/partials/gbt_home_partial.html' %}
+</div>
 
-{% include 'ngRadar_Website/partials/gbt_home_partial.html' %}
-{% include 'ngRadar_Website/partials/dsoc_home_partial.html' %}
-	
+<div id="home-dsoc-partial" 
+             hx-get="{% url 'dsoc_events' %}" 
+             hx-trigger="every 5s" 
+             hx-target="#home-dsoc-partial"
+             class="w-100">
+            {% include 'ngRadar_Website/partials/dsoc_home_partial.html' %}
+</div>
+
 
 {% endblock %}
