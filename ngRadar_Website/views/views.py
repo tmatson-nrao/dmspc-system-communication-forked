@@ -13,7 +13,7 @@ from django.http import StreamingHttpResponse, Http404, HttpResponse
 import boto3
 
 from ngRadar_Website.enums import Stations
-from ngRadar_Website.models.models import ObservatoryEvent, uiEvent, gbtEvent, dsocEvent
+from ngRadar_Website.models.models import ObservatoryEvent, uiEvent, gbtEvent, dsocEvent, ngrok_endpoint
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.db.models import Avg
@@ -117,18 +117,21 @@ def submit_waveform(request):
             selected_waveform = waveform,
             event_time = timestamp
         )
-        p = Path("../../../out/ngrok_endpoint.env")
-        text = p.read_text().strip()
 
-        bootstrap = None
-        for line in text.splitlines():
-            if line.startswith("BOOTSTRAP_SERVER="):
-                bootstrap = line.split("=", 1)[1].strip()
-                break
+        # p = Path("../../../out/ngrok_endpoint.env")
+        # text = p.read_text().strip()
 
-        if not bootstrap:
-            raise RuntimeError("BOOTSTRAP_SERVER not found in /out/ngrok_endpoint.env")
+        # bootstrap = None
+        # for line in text.splitlines():
+        #     if line.startswith("BOOTSTRAP_SERVER="):
+        #         bootstrap = line.split("=", 1)[1].strip()
+        #         break
+
+        # if not bootstrap:
+        #     raise RuntimeError("BOOTSTRAP_SERVER not found in /out/ngrok_endpoint.env")
         
+        bootstrap = ngrok_endpoint.objects.last().bootstrap
+
         # Kafka version 
         topic = "user_input"
         config = {
