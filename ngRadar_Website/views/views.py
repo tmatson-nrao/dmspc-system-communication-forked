@@ -38,6 +38,7 @@ def get_obs_events():
     # Calculate the average latency of the last 20 records
     latest_20 = latest_events[:20]
     avg_latency = latest_20.aggregate(Avg('latency_ms'))['latency_ms__avg'] or 0
+    current_waveform = ui_event.first().selected_waveform if ui_event.exists() else None
 
     return {
         'latest_events': latest_events,
@@ -45,7 +46,8 @@ def get_obs_events():
         'ui_event': ui_event.first() if ui_event else None,
         'gbt_event': latest_events.filter(station=Stations.GBT).order_by('-event_time').first(), # only care about the latest event for home gbt partial
         'dsoc_event': latest_events.filter(station=Stations.DSOC).order_by('-event_time').first(), # only care about the latest event for home dsoc partial
-        'avg_latency': round(avg_latency, 2)
+        'avg_latency': round(avg_latency, 2),
+        'current_waveform': current_waveform
     }
 
 
