@@ -9,12 +9,11 @@ from pathlib import Path
 
 #libraries used for data streaming
 import json
-from django.http import StreamingHttpResponse, Http404, HttpResponse
+from django.http import StreamingHttpResponse, Http404, HttpResponse, JsonResponse
 import boto3
 
 #libraries used for lock status
-import cache from django.core.cache
-import JsonResponse from django.http
+from django.core.cache import cache
 
 from ngRadar_Website.enums import Stations
 from ngRadar_Website.models.models import ObservatoryEvent, uiEvent, gbtEvent, dsocEvent
@@ -101,9 +100,10 @@ def serve_image(request, event_id):
         content_type=response["ContentType"],
     )
 
-def lock_status():
-    if cache.get('submit_locked'):
-        return JsonResponse({'locked: is_locked'})
+# Function for lock down user 
+def lock_status(request):
+    is_locked = cache.get('submit_locked', False)
+    return JsonResponse({'locked': is_locked})
 
 # Need a function AND another partial template for handling the user inputted payload
 def submit_waveform(request):
