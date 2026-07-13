@@ -14,3 +14,7 @@ python-dotenv==1.2.2
 confluent-kafka==2.8.0
 gunicorn
 whitenoise
+matplotlib
+boto3
+botocore
+numpy

@@ -1,22 +1,20 @@
 {% extends 'ngRadar_Website/base.html' %}
-{% load static %}
 
-{% block title %}Observation History{% endblock %}
+<!-- Don't need to load static since it is in the base-->
+
+{% block title %}History Events Table{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'ngRadar_Website/css/global.css' %}">
-<link rel="stylesheet" href="{% static 'ngRadar_Website/css/styleguide.css' %}">
-<link rel="stylesheet" href="{% static 'ngRadar_Website/css/style.css' %}">
 
-<!-- HTMX Engine Injection -->
-<script src="https://unpkg.com/htmx.org@1.9.12/dist/htmx.min.js"></script>
+<!-- Style Sheets and HTMX were previously linked here but this is not necessary since we include the "extends base" statement-->
 
 <div class="dashboard-wrapper d-flex flex-column min-vh-100" data-color-mode="SDS-light">
+       
+</header>
     
     <main class="flex-grow-0 container-fluid px-4 pt-4 pb-10">
         
-        <!-- REAL-TIME LIVESTREAM DASHBOARD TARGET ZONE -->
-        <!-- Polls the Django views every 3 seconds to inject raw database metrics below the header -->
+        <!-- Polls the Django views every 3 seconds to refresh partial -->
         <div id="dashboard-content" 
              hx-get="{% url 'event_table_update' %}" 
              hx-trigger="every 3s" 

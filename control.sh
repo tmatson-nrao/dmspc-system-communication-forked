@@ -5,7 +5,7 @@ KAFKA_PROFILES="--profile kafka --profile ngrok"
 # "worker" is consumer.py, meaning kafka-up and kafka-down will automatically start and stop the consumer.py worker as well. 
 # If you want to run the consumer.py worker separately, you can ommit "worker" from the KAFKA_SERVICES variable and run it separately with "docker compose run --rm worker"
 # And bring it down with "docker compose stop worker" and "docker compose rm -f worker", but adding it here does both automatically.
-KAFKA_SERVICES="zookeeper broker kafka-ui ngrok worker"
+KAFKA_SERVICES="zookeeper broker kafka-ui ngrok gbt seaweedfs dsoc"
 
 COMMAND="$1"
 
@@ -17,8 +17,8 @@ start)
     ;;
 
 rebuild)
-    echo "Starting development environment..."
-    docker compose up -d --build
+    echo "Rebuilding development environment..."
+    docker compose build --no-cache && docker compose up -d
     ;;
 
 stop)
@@ -43,12 +43,12 @@ load-staging-data)
     ;;
 
 kafka-up)
-    echo "Starting kafka broker, zookeeper, kafka-ui, ngrok..."
+    echo "Starting kafka broker, zookeeper, kafka-ui, ngrok, seaweedfs, workers..."
     docker compose $KAFKA_PROFILES up -d
     ;;
 
 kafka-down)
-    echo "Stopping kafka broker, zookeeper, kafka-ui, ngrok..."
+    echo "Stopping kafka broker, zookeeper, kafka-ui, ngrok, seaweedfs, workers..."
     docker compose stop $KAFKA_SERVICES
     docker compose rm -f $KAFKA_SERVICES
     ;;
@@ -65,7 +65,7 @@ hard-reset)
 
     docker system prune -f
 
-    docker compose up -d --build
+    docker compose build --no-cache && docker compose up -d
     ;;
 
 *)
