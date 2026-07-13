@@ -12,6 +12,10 @@ import json
 from django.http import StreamingHttpResponse, Http404, HttpResponse
 import boto3
 
+#libraries used for lock status
+import cache from django.core.cache
+import JsonResponse from django.http
+
 from ngRadar_Website.enums import Stations
 from ngRadar_Website.models.models import ObservatoryEvent, uiEvent, gbtEvent, dsocEvent
 from django.contrib import messages
@@ -97,8 +101,9 @@ def serve_image(request, event_id):
         content_type=response["ContentType"],
     )
 
-
-    
+def lock_status():
+    if cache.get('submit_locked'):
+        return JsonResponse({'locked: is_locked'})
 
 # Need a function AND another partial template for handling the user inputted payload
 def submit_waveform(request):
@@ -216,3 +221,4 @@ def gbt_event_partial(request):
         "ngRadar_Website/partials/gbt_home_partial.html",
         get_obs_events(),
     )
+
