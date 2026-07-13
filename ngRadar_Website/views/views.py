@@ -103,7 +103,9 @@ def serve_image(request, uuid):
         content_type=response["ContentType"],
     )
 
-# Function for lock down user 
+# Function for lock down user
+# Return True if event time is greater than lock time 
+# Othere wise False  
 def lock_status(request):
     lock_time = cache.get('submit_locked', None)
     if lock_time is None:
@@ -157,6 +159,7 @@ def submit_waveform(request):
             produce(topic, config, key, value)
         main()
         
+        # add a cache for submit time
         cache.set('submit_locked', datetime.now(timezone.utc))
     return redirect('home')
 
@@ -191,9 +194,11 @@ def login_view(request):
 
 @login_required
 def home_view(request):
-    # this is the view for the homepage, which will display the most recent observatory event
-    
-    return render(request, 'ngRadar_Website/home.html', get_obs_events())
+    return render(
+        request,
+        "ngRadar_Website/home.html",
+        get_obs_events(),
+    )
 
 
 @login_required
