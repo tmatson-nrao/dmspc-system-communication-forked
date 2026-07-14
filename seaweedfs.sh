@@ -3,19 +3,11 @@
 # Detect if running on Render vs Local
 if [ -n "$RENDER" ] || [ "$APP_ENV" = "demo" ]; then
     echo "--- Demo Cloud Environment Detected ---"
-    S3_DOMAIN="${WEED_S3_DOMAIN:-system-communication-prototype.onrender.com}"
-
-    # CRITICAL: On Render, force the S3 Gateway to use Render's dynamic $PORT
-    if [ -n "$PORT" ]; then
-        echo "Render $PORT detected: Overriding S3 port to $PORT"
-        S3_PORT=$PORT
-    else
-        S3_PORT=${WEED_S3_PORT:-8333}
-    fi
+    # Fallback syntax uses :- instead of ://
+    S3_DOMAIN="${WEED_S3_DOMAIN}" 
 else
     echo "--- Local Development Environment Detected ---"
-    S3_DOMAIN="localhost"
-    S3_PORT=${WEED_S3_PORT:-8333} # Uses local .env variable or 8333 fallback
+    S3_DOMAIN="${WEED_S3_DOMAIN}" 
 fi
 
 BIND_IP="0.0.0.0"

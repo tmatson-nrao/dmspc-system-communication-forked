@@ -9,11 +9,14 @@ from pathlib import Path
 
 #libraries used for data streaming
 import json
-from django.http import StreamingHttpResponse, Http404, HttpResponse
+from django.http import StreamingHttpResponse, Http404, HttpResponse, JsonResponse
 import boto3
 
+#libraries used for lock status
+from django.core.cache import cache
+
 from ngRadar_Website.enums import Stations
-from ngRadar_Website.models.models import ObservatoryEvent, uiEvent, gbtEvent, dsocEvent
+from ngRadar_Website.models.models import ObservatoryEvent, uiEvent, gbtEvent, dsocEvent, ngrok_endpoint
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.db.models import Avg
@@ -34,17 +37,20 @@ def get_obs_events():
     """Helper function to keep data uniform across view updates"""
 
     latest_events = ObservatoryEvent.objects.order_by("-event_time")
-    
+    ui_event = uiEvent.objects.order_by("-event_time")
     # Calculate the average latency of the last 20 records
     latest_20 = latest_events[:20]
     avg_latency = latest_20.aggregate(Avg('latency_ms'))['latency_ms__avg'] or 0
+    current_waveform = ui_event.first().selected_waveform if ui_event.exists() else None
 
     return {
         'latest_events': latest_events,
         'latest_event': latest_events.first() if latest_events else None,
+        'ui_event': ui_event.first() if ui_event else None,
         'gbt_event': latest_events.filter(station=Stations.GBT).order_by('-event_time').first(), # only care about the latest event for home gbt partial
         'dsoc_event': latest_events.filter(station=Stations.DSOC).order_by('-event_time').first(), # only care about the latest event for home dsoc partial
-        'avg_latency': round(avg_latency, 2)
+        'avg_latency': round(avg_latency, 2),
+        'current_waveform': current_waveform
     }
 
 
@@ -86,8 +92,8 @@ def serve_image(request, uuid):
     s3 = boto3.client(
         "s3",
         endpoint_url=os.environ["WEED_S3_DOMAIN"],
-        aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
-        aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+        aws_access_key_id=os.environ["WEED_S3_ACCESS_KEY"],
+        aws_secret_access_key=os.environ["WEED_S3_SECRET_KEY"],
     )
 
     response = s3.get_object(
@@ -100,7 +106,17 @@ def serve_image(request, uuid):
         content_type=response["ContentType"],
     )
 
-    
+# Function for lock down user
+# Return True if event time is greater than lock time 
+# Othere wise False  
+def lock_status(request):
+    lock_time = cache.get('submit_locked', None)
+    if lock_time is None:
+        return JsonResponse({"locked": False})
+    elif ObservatoryEvent.objects.filter(event_time__gt=lock_time, image_key__isnull=False):
+        cache.delete('submit_locked')
+        return JsonResponse({'locked':False})
+    return JsonResponse({'locked':True})
 
 # Need a function AND another partial template for handling the user inputted payload
 def submit_waveform(request):
@@ -114,18 +130,21 @@ def submit_waveform(request):
             selected_waveform = waveform,
             event_time = timestamp
         )
-        p = Path("../../../out/ngrok_endpoint.env")
-        text = p.read_text().strip()
 
-        bootstrap = None
-        for line in text.splitlines():
-            if line.startswith("BOOTSTRAP_SERVER="):
-                bootstrap = line.split("=", 1)[1].strip()
-                break
+        # p = Path("../../../out/ngrok_endpoint.env")
+        # text = p.read_text().strip()
 
-        if not bootstrap:
-            raise RuntimeError("BOOTSTRAP_SERVER not found in /out/ngrok_endpoint.env")
+        # bootstrap = None
+        # for line in text.splitlines():
+        #     if line.startswith("BOOTSTRAP_SERVER="):
+        #         bootstrap = line.split("=", 1)[1].strip()
+        #         break
+
+        # if not bootstrap:
+        #     raise RuntimeError("BOOTSTRAP_SERVER not found in /out/ngrok_endpoint.env")
         
+        bootstrap = ngrok_endpoint.objects.last().bootstrap
+
         # Kafka version 
         topic = "user_input"
         config = {
@@ -146,6 +165,8 @@ def submit_waveform(request):
             produce(topic, config, key, value)
         main()
         
+        # add a cache for submit time
+        cache.set('submit_locked', datetime.now(timezone.utc))
     return redirect('home')
 
 
@@ -203,6 +224,15 @@ def event_table_partial(request):
         get_obs_events(),
     )
 
+def status_partial(request):
+    # this is the partial template view for the status box on the home page
+
+    return render(
+        request,
+        "ngRadar_Website/partials/status_partial.html",
+        get_obs_events(),
+    )
+
 
 def dsoc_event_partial(request):
     # this is the partial template view for latest dsoc event image on home page
@@ -221,3 +251,4 @@ def gbt_event_partial(request):
         "ngRadar_Website/partials/gbt_home_partial.html",
         get_obs_events(),
     )
+
