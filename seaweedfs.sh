@@ -50,5 +50,5 @@ exec weed server \
   -s3.domainName="$S3_DOMAIN" \
   -s3.port="$S3_PORT" \
   -filer=true \
-  -filer.port="$FILER_PORT"
+  -filer.port="$FILER_PORT" \
   -s3.config=/tmp/identity.json
