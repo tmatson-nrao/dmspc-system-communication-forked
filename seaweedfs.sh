@@ -1,4 +1,27 @@
 #!/bin/sh
+set -e
+
+cat > /tmp/identity.json <<EOF
+{
+  "identities": [
+    {
+      "name": "demo_user",
+      "credentials": [
+        {
+          "accessKey": "${WEED_S3_ACCESS_KEY}",
+          "secretKey": "${WEED_S3_SECRET_KEY}"
+        }
+      ],
+      "actions": [
+        "Admin",
+        "Read",
+        "Write",
+        "List"
+      ]
+    }
+  ]
+}
+EOF
 
 # Detect if running on Render vs Local
 if [ -n "$RENDER" ] || [ "$APP_ENV" = "demo" ]; then
@@ -28,3 +51,4 @@ exec weed server \
   -s3.port="$S3_PORT" \
   -filer=true \
   -filer.port="$FILER_PORT"
+  -s3.config=/tmp/identity.json
